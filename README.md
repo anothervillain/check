@@ -5,10 +5,10 @@ Usage: <check domain.tld> to lookup relevant DNS, WHOIS and SSL information in y
 1) Checks for 'NXDOMAIN' status in the header-information from 'dig a'.
 2) Checks whether or not the domain has SOA beginning with 'charm.norid.no'
 3) Checks that the domain is reachable using 'ping' command.
----
-If the domain has the 'NXDOMAIN' status the script will inform about it and stop. 
-If the domain has SOA 'charm.norid.no' the script will inform about it and stop. 
-If the domain is not reachable using 'ping' the script will inform, but continue with the rest of the checks.
+   
+- If the domain has the 'NXDOMAIN' status the script will inform about it and stop. 
+- If the domain has SOA 'charm.norid.no' the script will inform about it and stop. 
+- If the domain is not reachable using 'ping' the script will inform, but continue with the rest of the checks.
 
 # **Domain information**
 The script will look for the following information and try to filter it out: 
@@ -26,9 +26,9 @@ Looks up the Apex domains (A) + (AAAA) records and performs a reverse dns lookup
 
 # **Dependencies**
 
-dig
-whois
-openssl
-curl
-grc
-lolcat
+- dig
+- whois
+- openssl
+- curl
+- grc
+- lolcat
