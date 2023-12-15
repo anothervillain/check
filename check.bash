@@ -29,7 +29,7 @@ check_nxdomain() {
             else
                 # Print the SOA result if WHOIS returns other output
                 echo -e "${RED}The domain $1 is in QUARANTINE @ charm.norid.no${RESET} ${GREEN}--> Owner change!${RESET}"
-                dig soa $1 +short
+                return 1 # Exiting the function with status 1 to indicate an error or stop condition
             fi
         else
             # Print NXDOMAIN if no other values are found
