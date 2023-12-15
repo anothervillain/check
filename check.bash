@@ -13,14 +13,32 @@ RESET="\033[0m"
 
 # Function to check for NXDOMAIN status in a domain response
 check_nxdomain() {
+    # Perform a DNS query for the given domain
     local domain_status=$(dig a $1 +cmd)
+    # Check if the response contains status: NXDOMAIN
     if echo "$domain_status" | grep -q 'status: NXDOMAIN'; then
-        echo -e "${RED}NXDOMAIN: Non-existent domain, aborting further checks.${RESET}"
-        echo -e "${YELLOW}Please verify that you entered the correct domain name.${RESET}"
-        return 1
+        # Check if 'charm.norid.no' is in the result
+        if echo "$domain_status" | grep -q 'charm.norid.no'; then
+            # Perform a WHOIS query on the domain
+            local whois_result=$(whois $1)
+            # Check if WHOIS result contains "No match"
+            if echo "$whois_result" | grep -q 'No match'; then
+                # Print NXDOMAIN status if WHOIS returns "No match" and stop further execution
+                echo -e "${RED}NXDOMAIN: No Match found in WHOIS, aborting further checks.${RESET}"
+                return 1 # Exiting the function with status 1 to indicate an error or stop condition
+            else
+                # Print the SOA result if WHOIS returns other output
+                echo -e "${RED}The domain $1 is in QUARANTINE @ charm.norid.no${RESET} ${GREEN}--> Owner change!${RESET}"
+                dig soa $1 +short
+            fi
+        else
+            # Print NXDOMAIN if no other values are found
+            echo -e "${RED}NXDOMAIN: Non-existent domain, aborting further checks.${RESET}"
+            echo -e "${YELLOW}Please verify that you entered the correct domain name.${RESET}"
+            return 1 # Exiting the function with status 1 to indicate an error or stop condition
+        fi
     fi
 }
-
 # Function to ping a domain and store the outcome, only informs if the domain is not reachable.
 check_reachable() {
     local ping_result=$(ping -c 1 $1)
@@ -57,7 +75,7 @@ spin(){
         ((i++))
     done
 }
-for _ in {1..3}; do
+for _ in {1..1}; do
     spin
 done
 printf "\r${GREEN}------------------------------------------ ↓${RESET}"
@@ -92,14 +110,7 @@ echo
     # NXDOMAIN CHECK
     check_nxdomain $1 || return
     # PING CHECK
-    # check_reachable $1 || return
-    # QUARANTINE CHECK
-    soa_result=$(dig soa "$1")
-    if [[ "$soa_result" == *"charm.norid.no"* ]]; then
-        echo -e "${RED}QUARANTINE! QUARANTINE! QUARANTINE!${RESET}"
-        echo -e "${RED}The domain $1 is in QUARANTINE @ charm.norid.no${RESET} ${GREEN}--> Owner change!${RESET}"
-        return
-    fi
+    #check_reachable $1 || return
     # A RECORD(S)
     echo -e "${YELLOW}A RECORD(S)${RESET}"
     a_result=$(dig a "$1" +short)
