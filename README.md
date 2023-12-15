@@ -1,26 +1,29 @@
-# **About this tool**
-Usage: check domain.tld to lookup relevant DNS, WHOIS and SSL information in your terminal.
+## **About this tool**
+Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
 
-# **Installation and setup**
+![image](https://github.com/zhk3r/check/assets/37957791/f9d01e4e-f8ea-4913-9ce5-c423a35bef9c)
 
-1) Add **export PATH="check:$PATH"** to your .zshrc
-2) Add **source ~/check/check_function.zsh** to your .zshrc
+
+## **Installation and setup**
+
+1) Add ```export PATH="check:$PATH"``` to your .zshrc or equivalent.
+2) Add ```source ~/check/check_function.zsh``` to your .zshrc or equivalent.
 3) (Optional) set an alias for the update script (ex: alias updatecheck='update_check.sh')
-4) git clone https://github.com/zhk3r/check.git
-5) chmod +x ~/check/update_check.sh
+4) ```git clone https://github.com/zhk3r/check.git``` to clone this repo.
+5) ```chmod +x ~/check/update_check.sh``` to make the update script run.
 6) Restart your terminal.
 
-# **Preliminary queries before contiuing with checks** 
-1) Checks for 'NXDOMAIN' status in the header-information from 'dig a'.
-2) Checks whether or not the domain has SOA beginning with 'charm.norid.no'
-3) Checks that the domain is reachable using 'ping' command.
+You should be good to go!
+
+## **Preliminary checks before actually starting the script** 
+1) Checks for 'NXDOMAIN' status in the header-information.
+2) Checks whether or not the domain SOA beings with 'charm.norid.no' e.g *[quarantine]*
    
 - If the domain has the 'NXDOMAIN' status the script will inform about it and stop. 
-- If the domain has SOA 'charm.norid.no' the script will inform about it and stop. 
-- If the domain is not reachable using 'ping' the script will inform, but continue with the rest of the checks.
+- If the domain SOA matches 'charm.norid.no' the script will inform about it and stop. 
 
-# **Domain information**
-The script will look for the following information and try to filter it out: 
+## **Domain information**
+The script will look for the following information on the given domain:
 
 1) A and AAAA records.
 2) Forwarding of all types: HTTP-status, redirTXT, DNS, Parked messages and such.
@@ -31,17 +34,21 @@ The script will look for the following information and try to filter it out:
 - Hardcoded check for 104. SSL proxy.
 - Looks up the Apex domains (A) + (AAAA) records and performs a reverse dns lookup.
 7) Checks Registrar information, does multiple lookups depending on types of results.
-8) SSL certificate CN, start|end date and issuer
+8) SSL certificate information: CN (Common Name), Issuer, Start & Expiry dates.
 
-# **Output and sanitazion of information**
+  ### Secondary functions
+  ```checkcert``` can be used to display a bit more information about the SSL certificate.
 
-Some of the functions sanitize the output in order to show only relevant information. Some of these checks include the WHOIS lookup which accounts for a subdomain being input, WHOIS lookup where a secondary lookup is done if 'requirements' are met. Reverse DNS lookup also has rules that sanitizes the information if the result is SOA (example). 
+   ```checkssl``` can be used to connect to the hostname using ```openssl``` protocol, displaying the certificate chain.
 
-# **Dependencies**
+## **Output and sanitazion of information**
+
+Some of the functions sanitize the output in order to show only relevant information. Some of these checks includes the WHOIS lookup which accounts for a subdomain being input, WHOIS lookup where a secondary lookup is done if special paramaters are met. The reverse DNS lookup part also has rules that sanitizes the information if the result isn't relevant (in.addr.rpa, SOA).
+
+### **Dependencies**
 
 - dig
 - whois
 - openssl
 - curl
-- grc
-- lolcat
+- lolcat *(not strictly necessary, you can remove ```| lolcat``` from line 65)*
