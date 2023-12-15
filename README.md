@@ -18,11 +18,15 @@ The script will look for the following information and try to filter it out:
 3) MX records
 4) SPF records using 'TXT' type and custom 'SPF' type (the tool will inform if it's the special-type)
 5) Nameservers
-6) Reverse DNS lookup: 
-Hardcoded check for 104. SSL proxy.
-Looks up the Apex domains (A) + (AAAA) records and performs a reverse dns lookup.
+6) Reverse DNS lookup of the A and AAAA record
+- Hardcoded check for 104. SSL proxy.
+- Looks up the Apex domains (A) + (AAAA) records and performs a reverse dns lookup.
 7) Checks Registrar information, does multiple lookups depending on types of results.
 8) SSL certificate CN, start|end date and issuer
+
+# **Output and sanitazion of information**
+
+Some of the functions sanitize the output in order to show only relevant information. Some of these checks include the WHOIS lookup which accounts for a subdomain being input, WHOIS lookup where a secondary lookup is done if 'requirements' are met. Reverse DNS lookup also has rules that sanitizes the information if the result is SOA (example). 
 
 # **Dependencies**
 
