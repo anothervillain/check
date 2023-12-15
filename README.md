@@ -1,7 +1,7 @@
 # **About this tool**
 Usage: <check domain.tld> to lookup relevant DNS, WHOIS and SSL information in your terminal.
 
-# **INSTALLATION**
+# **Installation and setup**
 
 1) Add **export PATH="check:$PATH"** to your .zshrc
 2) Add **source ~/check/check_function.zsh** to your .zshrc
