@@ -1,5 +1,5 @@
 # **About this tool**
-Usage: <check domain.tld> to lookup relevant DNS, WHOIS and SSL information in your terminal.
+Usage: check domain.tld to lookup relevant DNS, WHOIS and SSL information in your terminal.
 
 # **Installation and setup**
 
