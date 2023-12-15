@@ -51,4 +51,4 @@ Some of the functions sanitize the output in order to show only relevant informa
 - whois
 - openssl
 - curl
-- lolcat *(not strictly necessary, you can remove ```| lolcat``` from line 65)*
+- lolcat *(not strictly necessary, you can remove* ```| lolcat``` *from line 65)*
