@@ -1,5 +1,14 @@
 # **About this tool**
-Usage: <check domain.tld> to lookup relevant DNS, WHOIS and SSL information in your terminal,
+Usage: <check domain.tld> to lookup relevant DNS, WHOIS and SSL information in your terminal.
+
+# **INSTALLATION**
+
+1) Add **export PATH="check:$PATH"** to your .zshrc
+2) Add **source ~/check/check_function.zsh** to your .zshrc
+3) (Optional) set an alias for the update script (ex: alias updatecheck='update_check.sh')
+4) git clone https://github.com/zhk3r/check.git
+5) chmod +x ~/check/update_check.sh
+6) Restart your terminal.
 
 # **Preliminary queries before contiuing with checks** 
 1) Checks for 'NXDOMAIN' status in the header-information from 'dig a'.
