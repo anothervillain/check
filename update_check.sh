@@ -4,7 +4,7 @@
 CURRENT_DIR=$(pwd)
 
 # Navigate to the check-function repository
-cd ~/check/check_function.zsh
+cd ~/check
 
 # Pull the latest changes
 git pull
