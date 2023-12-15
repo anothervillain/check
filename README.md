@@ -23,3 +23,12 @@ Hardcoded check for 104. SSL proxy.
 Looks up the Apex domains (A) + (AAAA) records and performs a reverse dns lookup.
 7) Checks Registrar information, does multiple lookups depending on types of results.
 8) SSL certificate CN, start|end date and issuer
+
+# **Dependencies**
+
+dig
+whois
+openssl
+curl
+grc
+lolcat
