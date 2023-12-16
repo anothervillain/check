@@ -214,8 +214,7 @@ echo -e "${YELLOW}REGISTRAR${RESET}"
 local main_domain=$(subdomain_to_fqdn "$domain")
 
 # Retrieve registrar results
-# First attempt to find using 'Registrar:'
-local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n 's/Registrar:*//p' | head -n 1 | xargs)
+local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n '/Registrar:/{n;s/^ *//;p;}' | head -n 1 | xargs)
 
 # If not found, attempt to find using 'Registrar Handle'
 if [ -z "$registrar_result" ]; then
