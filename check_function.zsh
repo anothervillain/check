@@ -201,7 +201,7 @@ esac
     # REGISTRAR
     local domain=$1
     echo -e "${YELLOW}REGISTRAR${RESET}"
-    python3 reverse-dns-lookup.py
+python3 reverse-dns-lookup.py
 
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
