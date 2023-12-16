@@ -213,8 +213,9 @@ echo -e "${YELLOW}REGISTRAR${RESET}"
 # Convert subdomain to FQDN
 local main_domain=$(subdomain_to_fqdn "$domain")
 
-# Retrieve registrar results
-local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n -e '/Registrar:/{n;s/^ *//;p;}' -e 's/Registrar: *//p' | head -n 1 | xargs)
+# Retrieve registrar result, handling both single-line and two-line formats, and avoiding printing the next line if not needed
+local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | awk '/Registrar:/{getline; if ($0 !~ /^ *$/) print; else exit}' | sed 's/^ *//' | head -n 1 | xargs)
+
 
 # If not found, attempt to find using 'Registrar Handle'
 if [ -z "$registrar_result" ]; then
