@@ -198,39 +198,10 @@ esac
         echo -e "${GREEN}$ns_result${RESET}"
     fi
 
-python reverse-dns-lookup.py
-
     # REGISTRAR
     local domain=$1
     echo -e "${YELLOW}REGISTRAR${RESET}"
-    # Convert subdomain to FQDN
-    local main_domain=$(subdomain_to_fqdn "$domain")
-    # First lookup for registrar result in single-line format
-    local registrar_result_single_line=$(whois "$main_domain" | grep -E 'Registrar:' | sed -n 's/Registrar: *//p' | head -n 1 | xargs)
-    # Second lookup for registrar result in two-line format
-    local registrar_result_two_line=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | awk '/Registrar:/{getline; if ($0 !~ /^ *$/) print; else exit}' | sed 's/^ *//' | xargs)
-    # Combine the results, preferring single-line result if available
-    local registrar_result=${registrar_result_single_line:-$registrar_result_two_line}
-    # If not found, attempt to find using 'Registrar Handle'
-    if [ -z "$registrar_result" ]; then
-        registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar Handle' | sed -n 's/Registrar Handle...........: *//p' | head -n 1 | xargs)
-        # Extract registrar name if 'Registrar Handle' is found and append it to the output []
-        if [ -n "$registrar_result" ]; then
-            local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
-        fi
-    fi
-    # Using the extracted name from the previous statement to
-    if [ -n "$registrar_result" ]; then
-        # Check if registrar name is found and if the result starts with 'REG'
-        if [ -n "$registrar_name" ] && [[ "${registrar_result:0:3}" == "REG" ]]; then
-            echo -e "${GREEN}$registrar_result${RESET}" "${CYAN}[$registrar_name]${RESET}"
-        else
-            echo -e "${GREEN}$registrar_result${RESET}"
-        fi
-    else
-        echo -e "${RED}No Registrar information found for $main_domain${RESET}"
-        echo -e "Perform ${YELLOW}whois $main_domain${RESET} instead"
-    fi
+    python3 reverse-dns-lookup.py
 
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
