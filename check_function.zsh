@@ -182,16 +182,17 @@ esac
     fi
     # REVERSE DNS LOOKUP
     echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
+    # Lookup the A record.
     reverse_result_a=$(dig -x "$a_result" +short)
     if [ "$a_result" = "104.37.39.71" ]; then
         echo -e "${GREEN}This is our redirect proxy${RESET}" "${CYAN}(104.37.39.71)${RESET}" 
         echo -e "${BLUE}Domain has default A record${RESET}" "${MAGENTA}or it's --> forwarding${RESET}"
     elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
-        echo -e "${RED}Failed to lookup the host server from${RESET}" "${YELLOW}(A record)${RESET}"
+        echo -e "${RED}Failed${RESET}" "${YELLOW}(A record)${RESET}" "${GREEN}or it was SOA.${RESET}"
     else
         echo -e "${GREEN}$reverse_result_a${RESET}"
     fi
-    # Only proceed with reverse DNS lookup for the first valid AAAA record
+    # Lookup the AAAA record, unless its SOA.
     if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
         # Extract the first valid IPv6 address
         local first_aaaa_address=$(echo "$aaaa_result" | head -n 1)
@@ -199,22 +200,16 @@ esac
         if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
             echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
         else
-            echo -e "${RED}Failed to lookup the host server from${RESET}" "${YELLOW}AAAA record${RESET}"
+            echo -e "${RED}Failed${RESET}" "${YELLOW}(AAAA record)${RESET}" "${GREEN}or it was SOA.${RESET}"
         fi
-    else
-        echo -e "${RED}Failed to lookup the host server from${RESET}" "${YELLOW}AAAA record${RESET}"
-    fi
 # REGISTRAR
 local domain=$1
 echo -e "${YELLOW}REGISTRAR${RESET}"
-
 # Convert subdomain to FQDN
 local main_domain=$(subdomain_to_fqdn "$domain")
-
 # Retrieve registrar results
 # First attempt to find using 'Registrar:'
 local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | head -n 1 | xargs)
-
 # If not found, attempt to find using 'Registrar Handle'
 if [ -z "$registrar_result" ]; then
     registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar Handle' | sed -n 's/Registrar Handle...........: *//p' | head -n 1 | xargs)
@@ -223,7 +218,6 @@ if [ -z "$registrar_result" ]; then
         local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
     fi
 fi
-
 # Check for registrar result
 if [ -n "$registrar_result" ]; then
     # Check if registrar name is found and if the result starts with 'REG'
@@ -236,7 +230,6 @@ else
     echo -e "${RED}No Registrar information found for $main_domain${RESET}"
     echo -e "Perform ${YELLOW}whois $main_domain${RESET} instead"
 fi
-
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
     check_ssl_certificate "$1"
