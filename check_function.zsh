@@ -209,25 +209,21 @@ fi
 # REGISTRAR
 local domain=$1
 echo -e "${YELLOW}REGISTRAR${RESET}"
+
 # Convert subdomain to FQDN
 local main_domain=$(subdomain_to_fqdn "$domain")
-# Retrieve registrar result, accounting for information spread over two lines
-local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:|Registrar Handle' | sed -n 's/Registrar: *//p;s/Registrar Handle...........: *//p' | tr '\n' ' ' | sed 's/ -- / /' | head -n 1 | xargs)
-# Check for registrar result
-if [ -n "$registrar_result" ]; then
-    # Extract registrar name
-    local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
 
-    # Check if registrar name is found and if the result starts with 'REG'
-    if [ -n "$registrar_name" ] && [[ "${registrar_result:0:3}" == "REG" ]]; then
-        echo -e "${GREEN}$registrar_result${RESET}" "${CYAN}[$registrar_name]${RESET}"
-    else
-        echo -e "${GREEN}$registrar_result${RESET}"
-    fi
-else
-    echo -e "${RED}No Registrar information found for $main_domain${RESET}"
-    echo -e "Perform ${YELLOW}whois $main_domain${RESET} instead"
+# Attempt to find registrar result using 'Registrar:'
+local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n '1!G;h;$p' | sed -n 's/Registrar: *\n//p' | xargs)
+
+# If the first attempt is unsuccessful, try again with the same method
+if [ -z "$registrar_result" ]; then
+    registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n '1!G;h;$p' | sed -n 's/Registrar: *\n//p' | xargs)
 fi
+
+# Extract registrar name from the result
+local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
+
 # Check for registrar result
 if [ -n "$registrar_result" ]; then
     # Check if registrar name is found and if the result starts with 'REG'
