@@ -6,12 +6,14 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 
 ## **Installation and setup**
 
-1) Add ```export PATH="check:$PATH"``` to your .zshrc or equivalent.
-2) Add ```source ~/check/check_function.zsh``` to your .zshrc or equivalent.
-3) (Optional) set an alias for the update script (ex: alias updatecheck='update_check.sh')
-4) ```git clone https://github.com/zhk3r/check.git``` to clone this repo.
-5) ```chmod +x ~/check/update_check.sh``` to make the update script run.
-6) Restart your terminal.
+| 0 | Do the follwing:                                                                                  |
+| :-| :------------------------------------------------------------------------------------------------ |
+| 1 | Add ```export PATH="check:$PATH"``` to your .zshrc or equivalent.                                 |
+| 2 | Add ```source ~/check/check_function.zsh``` to your .zshrc or equivalent.                         |
+| 3 | (Optional) set an alias for the update script (ex: alias updatecheck='update_check.sh')           |
+| 4 | ```git clone https://github.com/zhk3r/check.git``` to clone this repo.                            |
+| 5 | ```chmod +x ~/check/update_check.sh``` to make the update script run.                             |
+| 6 | ```source .zshrc``` or equivalent (restart terminal)                                              |
 
 You should be good to go!
 
@@ -51,4 +53,4 @@ Some of the functions sanitize the output in order to show only relevant informa
 - whois
 - openssl
 - curl
-- lolcat *(not strictly necessary, you can remove* ```| lolcat``` *from line 65)*
+- lolcat *(not strictly necessary, you can remove* ```| lolcat``` *from line 59)*
