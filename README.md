@@ -4,7 +4,7 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 ![image](image-3.png)
 
 ## **Installation and setup**
-| * | Copy-paste this                                      | to this thing here                            |
+| * | Copy-paste this!                                     | "But to where you ask"                        |
 | :-| :----------------------------------------------------|:----------------------------------------------|
 | 1 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
 | 2 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
@@ -53,6 +53,8 @@ The script will look for the following information on the given domain:
    ```checkssl``` can be used to connect to the hostname using ```openssl``` protocol, displaying the certificate chain.
 
 ## **Output and sanitazion of information**
+
+There are some hidden checks that happen during some of the checks, these include but are possibly not limited to:
 
 Some of the functions sanitize the output in order to show only relevant information. Some of these checks includes the WHOIS lookup which accounts for a subdomain being input, WHOIS lookup where a secondary lookup is done if special paramaters are met. The reverse DNS lookup part also has rules that sanitizes the information if the result isn't relevant (in.addr.rpa, SOA).
 
