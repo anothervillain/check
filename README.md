@@ -1,7 +1,8 @@
 ## **About this tool/script**
 Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
 
-![front](https://github.com/zhk3r/check/assets/37957791/0975e4db-104d-4ce9-83b8-1f4f92046f9f)
+![front](https://github.com/zhk3r/check/assets/37957791/2103887d-3946-44cc-bd0b-edc2205a0b27)
+
 
 ## **Installation and setup**
 | * | Copy-paste this!                                     | "But to where you ask"                        |
