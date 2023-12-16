@@ -304,24 +304,3 @@ checkssl() {
     { print $0 }
   '
 }
-
-# Allow checkcert and checkssl to be used as flags (ex: check -s domain.tld)
-while getopts "sc" opt; do
-  case $opt in
-    s)
-      checkssl "$OPTARG"
-      ;;
-    c)
-      checkcert "$OPTARG"
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      ;;
-  esac
-done
-
-# If no flags are provided, run the normal script logic
-if [ $# -eq 0 ]; then
-  # Your normal script execution
-fi
-
