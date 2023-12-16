@@ -5,7 +5,7 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 
 
 ## **Installation and setup**
-| * | *After this it'll be smooth sailing* ;)                                                           |
+| * |                                                                                                   |
 | :-| :------------------------------------------------------------------------------------------------ |
 | 1 | ```export PATH="check:$PATH"``` <-- Add to your .zshrc or equivalent.                             |
 | 2 | ```source ~/check/check_function.zsh``` <-- Add to your .zshrc or equivalent.                     |
@@ -33,16 +33,20 @@ After updating the script you will have to either,
 ## **Domain information**
 The script will look for the following information on the given domain:
 
-1) A and AAAA records.
-2) Forwarding of all types: HTTP-status, redirTXT, DNS, Parked messages and such.
-3) MX records
-4) SPF records using 'TXT' type and custom 'SPF' type (the tool will inform if it's the special-type)
-5) Nameservers
-6) Reverse DNS lookup of the A and AAAA record
-- Hardcoded check for 104. SSL proxy.
-- Looks up the Apex domains (A) + (AAAA) records and performs a reverse dns lookup.
-7) Checks Registrar information, does multiple lookups depending on types of results.
-8) SSL certificate information: CN (Common Name), Issuer, Start & Expiry dates.
+
+| WHAT      | WHICH     | EXPLANATION                                   |
+| :---------|:----------|-----------------------------------------------|
+| RECORD    | A         | Looks up any A records                        |
+| RECORD    | AAAA      | Looks up any AAAA records                     |
+| FORWARD   | HTTP      | Checks for http_status-based forwarding       |        
+| FORWARD   | redir     | Checks for _redir forwarding                  |
+| FORWARD   | parked    | Checks for parked messages                    |
+| RECORD    | MX        | Looks up Mail Exchange records.               |
+| RECORD    | SPF       | Searches for SPF records in TXT + SPF         |   
+| RECORD    | NS        | Nameservers                                   | 
+| DNSLOOKUP | REVERSE   | Reverse DNS lookup on both A & AAAA records   |         
+| WHOIS     | REGISTRAR | WHOIS and pull registrar name                 |
+| CURL      | SSL CERT  | Check SSL certificate status                  |
 
   ### Secondary functions
   ```checkcert``` can be used to display a bit more information about the SSL certificate.
