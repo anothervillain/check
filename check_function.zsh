@@ -193,7 +193,6 @@ elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
 else
     echo -e "${GREEN}$reverse_result_a${RESET}"
 fi
-
 # Check and perform Reverse DNS lookup for AAAA record
 if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
     # Extract the first valid IPv6 address
@@ -214,7 +213,7 @@ echo -e "${YELLOW}REGISTRAR${RESET}"
 local main_domain=$(subdomain_to_fqdn "$domain")
 # Retrieve registrar results
 # First attempt to find using 'Registrar:'
-local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | head -n 1 | xargs)
+local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n 's/Registrar: *//p' | head -n 1 | xargs)
 # If not found, attempt to find using 'Registrar Handle'
 if [ -z "$registrar_result" ]; then
     registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar Handle' | sed -n 's/Registrar Handle...........: *//p' | head -n 1 | xargs)
