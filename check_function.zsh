@@ -213,12 +213,12 @@ echo -e "${YELLOW}REGISTRAR${RESET}"
 # Convert subdomain to FQDN
 local main_domain=$(subdomain_to_fqdn "$domain")
 
-# Attempt to find registrar result using 'Registrar:'
-local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n 's/Registrar: *//p' | head -n 1 | xargs)
+# Attempt to find registrar result using 'Registrar:' on the same line
+local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | grep -v 'Registrar:' | xargs)
 
 # If not found, attempt to find using 'Registrar:' with the name on the next line
 if [ -z "$registrar_result" ]; then
-    registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n '1!G;h;$p' | sed -n 's/Registrar: *\n//p' | xargs)
+    registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n '/Registrar:/{n;p;}' | xargs)
 fi
 
 # Extract registrar name from the result
@@ -235,6 +235,7 @@ else
     echo -e "${RED}No Registrar information found for $main_domain${RESET}"
     echo -e "Perform ${YELLOW}whois $main_domain${RESET} instead"
 fi
+
 
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
