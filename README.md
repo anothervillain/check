@@ -5,6 +5,7 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 
 
 ## **Installation and setup**
+| * | *After this it'll be smooth sailing* ;)                                                           |
 | :-| :------------------------------------------------------------------------------------------------ |
 | 1 | ```export PATH="check:$PATH"``` <-- Add to your .zshrc or equivalent.                             |
 | 2 | ```source ~/check/check_function.zsh``` <-- Add to your .zshrc or equivalent.                     |
