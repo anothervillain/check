@@ -180,28 +180,33 @@ esac
     else
         echo -e "${GREEN}$ns_result${RESET}"
     fi
-    # REVERSE DNS LOOKUP
-    echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
-    # Lookup the A record.
-    reverse_result_a=$(dig -x "$a_result" +short)
-    if [ "$a_result" = "104.37.39.71" ]; then
-        echo -e "${GREEN}This is our redirect proxy${RESET}" "${CYAN}(104.37.39.71)${RESET}" 
-        echo -e "${BLUE}Domain has default A record${RESET}" "${MAGENTA}or it's --> forwarding${RESET}"
-    elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
-        echo -e "${RED}Failed${RESET}" "${YELLOW}(A record)${RESET}" "${GREEN}or it was SOA.${RESET}"
+# REVERSE DNS LOOKUP
+echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
+# Check and perform Reverse DNS lookup for A record
+reverse_result_a=$(dig -x "$a_result" +short)
+# Compare A result with specific IP address and handle different scenarios
+if [ "$a_result" = "104.37.39.71" ]; then
+    echo -e "${GREEN}This is our redirect proxy${RESET}" "${CYAN}(104.37.39.71)${RESET}" 
+    echo -e "${BLUE}Domain has default A record${RESET}" "${MAGENTA}or it's --> forwarding${RESET}"
+elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
+    echo -e "${RED}Failed${RESET}" "${YELLOW}(A record)${RESET}" "${GREEN}or it was SOA.${RESET}"
+else
+    echo -e "${GREEN}$reverse_result_a${RESET}"
+fi
+
+# Check and perform Reverse DNS lookup for AAAA record
+if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
+    # Extract the first valid IPv6 address
+    local first_aaaa_address=$(echo "$aaaa_result" | head -n 1)
+    reverse_result_aaaa=$(dig -x "$first_aaaa_address" +short)
+
+    # Handle different scenarios for AAAA record
+    if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
+        echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
     else
-        echo -e "${GREEN}$reverse_result_a${RESET}"
+        echo -e "${RED}Failed${RESET}" "${YELLOW}(AAAA record)${RESET}" "${GREEN}or it was SOA.${RESET}"
     fi
-    # Lookup the AAAA record, unless its SOA.
-    if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
-        # Extract the first valid IPv6 address
-        local first_aaaa_address=$(echo "$aaaa_result" | head -n 1)
-        reverse_result_aaaa=$(dig -x "$first_aaaa_address" +short)
-        if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
-            echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
-        else
-            echo -e "${RED}Failed${RESET}" "${YELLOW}(AAAA record)${RESET}" "${GREEN}or it was SOA.${RESET}"
-        fi
+fi
 # REGISTRAR
 local domain=$1
 echo -e "${YELLOW}REGISTRAR${RESET}"
