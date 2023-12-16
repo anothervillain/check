@@ -142,7 +142,7 @@ echo
     # HTTP, WEB, REDIR, AND WWW FORWARDING CHECK
     http_status=$(curl -s -o /dev/null -w "%{http_code}" -L --head "https://$1")
     redirect_url=$(curl -s -L -I "https://$1" | grep -i ^Location: | tail -1 | cut -d ' ' -f 2)
-    # Check for http-based status-forwarding
+    # Check for http-status-based-forwarding
     case "$http_status" in
     301|302|303|307|308)
         echo -e "${YELLOW}WEB FORWARDING RECORD (HTTP $http_status)${RESET}"
