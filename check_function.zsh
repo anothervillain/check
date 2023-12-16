@@ -24,7 +24,7 @@ check_nxdomain() {
             # Check if WHOIS result contains "No match"
             if echo "$whois_result" | grep -q 'No match'; then
                 # WHOIS check for .no domains specifically to determine if the domain is in quarantine.
-                echo -e "${RED}NXDOMAIN: "No Match" result from whois, aborting further checks.${RESET}"
+                echo -e "${RED}NXDOMAIN: Non-existent domain, aborting further checks.${RESET}"
                 echo -e "${YELLOW}This might be an error, do your research!${RESET}"
                 return 1 # Stopping the script from running further here
             else
