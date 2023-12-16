@@ -198,6 +198,8 @@ esac
         echo -e "${GREEN}$ns_result${RESET}"
     fi
 
+    pwd
+
     # REGISTRAR
     local domain=$1
     echo -e "${YELLOW}REGISTRAR${RESET}"
