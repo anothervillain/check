@@ -4,13 +4,13 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 ![image](image-3.png)
 
 ## **Installation and setup**
-| 1 | ```export PATH="check:$PATH"``` <-- Add to your .zshrc or equivalent.                             |
-| :-| :------------------------------------------------------------------------------------------------ |
-| 2 | ```source ~/check/check_function.zsh``` <-- Add to your .zshrc or equivalent.                     |
-| 3 | ```alias uc='update_check.sh'``` (Optional) set an alias for the update script                    |
-| 4 | ```git clone https://github.com/zhk3r/check.git``` to clone this repo.                            |
-| 5 | ```chmod +x ~/check/update_check.sh``` to make the update script run.                             |
-| 6 | ```source .zshrc``` or equivalent (restart terminal)                                              |
+| :-| :----------------------------------------------------:-----------------------------------------------|
+| 1 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
+| 2 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
+| 3 | ```alias uc='update_check.sh'```                     | (Optional) set an alias for the update script |
+| 4 | ```git clone https://github.com/zhk3r/check.git```   | to clone this repo.                           |
+| 5 | ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
+| 6 | ```source .zshrc```                                  | or equivalent (restart terminal)              |
 
 You should be good to go!
 
