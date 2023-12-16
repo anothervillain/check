@@ -209,7 +209,6 @@ fi
 # REGISTRAR
 local domain=$1
 echo -e "${YELLOW}REGISTRAR${RESET}"
-
 # Convert subdomain to FQDN
 local main_domain=$(subdomain_to_fqdn "$domain")
 # First lookup for registrar result in single-line format
@@ -218,7 +217,6 @@ local registrar_result_single_line=$(whois "$main_domain" | grep -E 'Registrar:'
 local registrar_result_two_line=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | awk '/Registrar:/{getline; if ($0 !~ /^ *$/) print; else exit}' | sed 's/^ *//' | xargs)
 # Combine the results, preferring single-line result if available
 local registrar_result=${registrar_result_single_line:-$registrar_result_two_line}
-
 # If not found, attempt to find using 'Registrar Handle'
 if [ -z "$registrar_result" ]; then
     registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar Handle' | sed -n 's/Registrar Handle...........: *//p' | head -n 1 | xargs)
@@ -227,7 +225,6 @@ if [ -z "$registrar_result" ]; then
         local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
     fi
 fi
-
 # Check for registrar result
 if [ -n "$registrar_result" ]; then
     # Check if registrar name is found and if the result starts with 'REG'
