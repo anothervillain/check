@@ -198,7 +198,7 @@ esac
         echo -e "${GREEN}$ns_result${RESET}"
     fi
 
-python3 reverse-dns-lookup.py
+python reverse-dns-lookup.py
 
     # REGISTRAR
     local domain=$1
