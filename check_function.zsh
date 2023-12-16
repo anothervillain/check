@@ -261,6 +261,10 @@ check_ssl_certificate() {
     fi
 }
 
+# ADD-ON FUNCTIONALITY
+# checkssl to connect via openssl and view certificate chain.
+# checkcert to show SSL information (sanizied output) and retry if that fails.
+
 # Function to curl a site via TLS and print the connection information.
 function checkcert() {
   if [ -z "$1" ]; then
