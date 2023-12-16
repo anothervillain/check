@@ -54,7 +54,24 @@ subdomain_to_fqdn() {
     echo "$main_domain"
 }
 
-# Main function to check most interesting information about any given domain.
+# Function to check SSL certificate without --insecure flag
+check_ssl_certificate() {
+    local domain=$1
+    local ssl_info
+    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
+        /^\*  subject:/ { print cyan $0 reset }
+        /^\*  (start|expire) date:/ { print yellow $0 reset }
+        /^\*  issuer:/ { print magenta $0 reset }
+    ')
+    if [ -z "$ssl_info" ]; then
+        echo -e "${RED}Failed to retrieve SSL certificate information. Try using checkcert for more details${RESET}"
+    else
+        echo -e "$ssl_info"
+        echo -e "${GREEN}*  Use${RESET}" "${CYAN}checkcert${RESET}" "${GREEN}or${RESET}" "${CYAN}checkssl${RESET}" "${GREEN}for more info${RESET}"
+    fi
+}
+
+# THE CHECK FUNCTION STARTS HERE!
 check() {
     echo "Checking for information on $1:" | lolcat
 spinner=( '/' '-' '\' '|' )
@@ -73,7 +90,7 @@ for _ in {1..1}; do
     spin
 done
 printf "\r${GREEN}------------------------------------------ ↓${RESET}"
-# Help section / Information centre
+# Help section or information centre, explaining the different checks/functions
 echo
     if [ "$1" = "--help" ]; then
         echo -e "${GREEN}Usage: check domain.tld${RESET}"
@@ -96,6 +113,7 @@ echo
             echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
             return
         fi
+
     # EMPTY INPUT
     if [ -z "$1" ]; then
         echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
@@ -167,8 +185,8 @@ esac
     fi
     spf_result=$(dig +short spf "$1" | grep 'v=spf')
     if [ -n "$spf_result" ]; then
-        echo -e "${GREEN}Custom 'SPF' type DNS record found: $spf_result${RESET}"
-        echo -e "${RED}These types of records work poorly!${RESET}"
+        echo -e "${GREEN}Custom 'SPF-type' DNS record found: $spf_result${RESET}"
+        echo -e "${YELLOW}It's better to add the SPF record as a TXT record${RESET}"
     fi
 
     # NAMESERVERS
@@ -244,28 +262,12 @@ esac
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
     check_ssl_certificate "$1"
 }
-    # Function to check SSL certificate without --insecure flag
-check_ssl_certificate() {
-    local domain=$1
-    local ssl_info
-    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
-        /^\*  subject:/ { print cyan $0 reset }
-        /^\*  (start|expire) date:/ { print yellow $0 reset }
-        /^\*  issuer:/ { print magenta $0 reset }
-    ')
-    if [ -z "$ssl_info" ]; then
-        echo -e "${RED}Failed to retrieve SSL certificate information. Try using checkcert for detailed diagnostics.${RESET}"
-    else
-        echo -e "$ssl_info"
-        echo -e "${GREEN}*  Use${RESET}" "${BLUE}checkcert${RESET}" "${GREEN}or${RESET}" "${BLUE}checkssl${RESET}" "${GREEN}for more info${RESET}"
-    fi
-}
 
 # ADD-ON FUNCTIONALITY
-# checkssl to connect via openssl and view certificate chain.
-# checkcert to show SSL information (sanizied output) and retry if that fails.
+# checkssl to connect via openssl and view certificate chain
+# checkcert to show SSL information (sanizied output) and retry if that fails
 
-# Function to curl a site via TLS and print the connection information.
+# Function 'checkcert' to look TLS information using curl
 function checkcert() {
   if [ -z "$1" ]; then
     echo -e "${YELLOW}Usage: checkcert <domain.tld> to connect via HTTPS and print TLS connection information.${RESET}"
@@ -280,26 +282,28 @@ function checkcert() {
   ')
   # Check if the TLS connection check failed
   if [ -z "$tls_info" ]; then
-    echo -e "${RED}Failed to establish a TLS connection. Retrying without modifications...${RESET}"
-    # Retry the TLS connection check without modifications
+    echo -e "${RED}Failed to establish a TLS connection${RESET}"
+    echo -e "${MAGENTA}Retrying without sanitizing the output${RESET}"
+    # Retry the TLS connection check sanitizing the output in any way
     tls_info=$(curl --insecure -vvI "https://$1" 2>&1)
     
     if [ -z "$tls_info" ]; then
-      echo -e "${RED}Failed to establish a TLS connection even on retry. Check the domain or try again.${RESET}"
+      echo -e "${RED}Failed to establish a TLS connection even on retry!${RESET}"
+      echo -e "${YELLOW}Ensure you entered a valid domain name${RESET}"
       return 1
     fi
     # Print the TLS connection information after retry
-    echo -e "${GREEN}TLS connection information for $1 after retrying with no sanitized output:${RESET}"
+    echo -e "${GREEN}TLS connection information for $1 after retrying without sanitized output:${RESET}"
     echo -e "$tls_info"
     echo "${RED}Still nothing? There's likely not a SSL certificate on the server!${RESET}"
   else
     # Print the TLS connection information if the initial check succeeded
-    echo -e "${GREEN}TLS Connection Information for $1:${RESET}"
+    echo -e "${GREEN}TLS connection information for $1:${RESET}"
     echo -e "$tls_info"
   fi
 }
 
-# Connect to a hostname using openssl to show complete certificate chain.
+# Function 'checkssl' using openssl to connect to a hostname and show the complete certificate chain
 checkssl() {
   openssl s_client --showcerts --connect "$1:443" 2>/dev/null | awk -v RED="$RED" -v GREEN="$GREEN" -v YELLOW="$YELLOW" -v BLUE="$BLUE" -v MAGENTA="$MAGENTA" -v CYAN="$CYAN" -v RESET="$RESET" '
     /Server certificate/ { print CYAN $0 RESET; next }

@@ -5,17 +5,22 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 
 
 ## **Installation and setup**
-
-| 0 | Do the follwing:                                                                                  |
 | :-| :------------------------------------------------------------------------------------------------ |
-| 1 | Add ```export PATH="check:$PATH"``` to your .zshrc or equivalent.                                 |
-| 2 | Add ```source ~/check/check_function.zsh``` to your .zshrc or equivalent.                         |
-| 3 | (Optional) set an alias for the update script (ex: alias updatecheck='update_check.sh')           |
+| 1 | ```export PATH="check:$PATH"``` <-- Add to your .zshrc or equivalent.                             |
+| 2 | ```source ~/check/check_function.zsh``` <-- Add to your .zshrc or equivalent.                     |
+| 3 | ```alias uc='update_check.sh'``` (Optional) set an alias for the update script                    |
 | 4 | ```git clone https://github.com/zhk3r/check.git``` to clone this repo.                            |
 | 5 | ```chmod +x ~/check/update_check.sh``` to make the update script run.                             |
 | 6 | ```source .zshrc``` or equivalent (restart terminal)                                              |
 
 You should be good to go!
+
+### Updating the script
+After updating the script you will have to either, 
+
+1) ```source .zshrc``` (or equivalent).
+2) Restart your terminal.
+3) Open up a new terminal tab.
 
 ## **Preliminary checks before actually starting the script** 
 1) Checks for 'NXDOMAIN' status in the header-information.
