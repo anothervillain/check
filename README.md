@@ -1,8 +1,7 @@
 ## **About this tool**
 Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
 
-![image](https://github.com/zhk3r/check/assets/37957791/f9d01e4e-f8ea-4913-9ce5-c423a35bef9c)
-
+![check](image.png)
 
 ## **Installation and setup**
 | * |                                                                                                   |
@@ -35,7 +34,7 @@ The script will look for the following information on the given domain:
 
 
 | WHAT      | WHICH     | EXPLANATION                                   |
-| :---------|:----------|-----------------------------------------------|
+| :---------|:----------|:----------------------------------------------|
 | RECORD    | A         | Looks up any A records                        |
 | RECORD    | AAAA      | Looks up any AAAA records                     |
 | FORWARD   | HTTP      | Checks for http_status-based forwarding       |        
