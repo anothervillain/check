@@ -198,33 +198,7 @@ esac
         echo -e "${GREEN}$ns_result${RESET}"
     fi
 
-    # REVERSE DNS LOOKUP
-    echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
-    # Perform a reverse dns lookup on the domains A record
-    reverse_result_a=$(dig -x "$a_result" +short)
-    # Check if the result is our SSL proxy
-    if [ "$a_result" = "104.37.39.71" ]; then
-        echo -e "${GREEN}This is our redirect proxy${RESET}" "${CYAN}(104.37.39.71)${RESET}" 
-        echo -e "${BLUE}Domain has default A record${RESET}" "${MAGENTA}or it's --> forwarding${RESET}"
-        # Check if the result is SOA (Start of Authority)
-    elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
-        echo -e "${RED}Failed to lookup the server${RESET}" "${YELLOW}(A record)${RESET}" "${GREEN}or it was SOA.${RESET}"
-    else
-        echo -e "${GREEN}$reverse_result_a${RESET}"
-    fi
-    # Perform a reverse dns lookup on the domains AAAA record
-    if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
-        # Extract the first valid IPv6 address
-        local first_aaaa_address=$(echo "$aaaa_result" | head -n 1)
-        reverse_result_aaaa=$(dig -x "$first_aaaa_address" +short)
-
-        # Post the result unless it's SOA (Start of Authority)
-        if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
-            echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
-        else
-            echo -e "${RED}Failed to lookup the server${RESET}" "${YELLOW}(AAAA record)${RESET}" "${GREEN}or it was SOA${RESET}"
-        fi
-    fi
+python3 reverse-dns-lookup.py
 
     # REGISTRAR
     local domain=$1
