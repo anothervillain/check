@@ -213,18 +213,21 @@ echo -e "${YELLOW}REGISTRAR${RESET}"
 # Convert subdomain to FQDN
 local main_domain=$(subdomain_to_fqdn "$domain")
 
-# Attempt to find registrar result using 'Registrar:' on the same line
-local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | grep -v 'Registrar:' | xargs)
+# Retrieve registrar results
+# First attempt to find using 'Registrar:'
+local registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | head -n 1 | xargs)
 
-# If not found, attempt to find using 'Registrar:' with the name on the next line
+# If not found, attempt to find using 'Registrar Handle'
 if [ -z "$registrar_result" ]; then
-    registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | sed -n '/Registrar:/{n;p;}' | xargs)
+    registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar Handle' | sed -n 's/Registrar Handle...........: *//p' | head -n 1 | xargs)
+    # Extract registrar name if 'Registrar Handle' is found
+    if [ -n "$registrar_result" ]; then
+        local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
+    fi
 fi
 
-# Extract registrar name from the result
+# Check for registrar result
 if [ -n "$registrar_result" ]; then
-    local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
-
     # Check if registrar name is found and if the result starts with 'REG'
     if [ -n "$registrar_name" ] && [[ "${registrar_result:0:3}" == "REG" ]]; then
         echo -e "${GREEN}$registrar_result${RESET}" "${CYAN}[$registrar_name]${RESET}"
@@ -235,7 +238,6 @@ else
     echo -e "${RED}No Registrar information found for $main_domain${RESET}"
     echo -e "Perform ${YELLOW}whois $main_domain${RESET} instead"
 fi
-
 
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
