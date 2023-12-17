@@ -258,7 +258,7 @@ esac
 # checkcert to show SSL information (sanizied output) and retry if that fails
 
 # Function 'checkcert' to look TLS information using curl
-function checkcert() {
+checkcert() {
   if [ -z "$1" ]; then
     echo -e "${YELLOW}Usage: checkcert <domain.tld> to connect via HTTPS and print TLS connection information.${RESET}"
     return 1
