@@ -1,6 +1,6 @@
 # FUNCTIONS NESTED OUTSIDE OF 'check' ITSELF TO AVOID CLUSTERFUCK.
 # THESE CAN BE CALLED UPON BY OTHER FUNCTIONS INSIDE 'check' ITSELF.
-# USE THE ANSI COLOR CODES BELOW!
+# USE THE ANSI COLOR CODES BELOW.
 
 # ANSI color codes
 RED="\033[0;31m"
@@ -24,7 +24,7 @@ check_nxdomain() {
             # Check if WHOIS result contains "No match"
             if echo "$whois_result" | grep -q 'No match'; then
                 # WHOIS check for .no domains specifically to determine if the domain is in quarantine.
-                echo -e "${RED}NXDOMAIN: Non-existent domain, aborting further checks.${RESET}"
+                echo -e "${RED}NXDOMAIN: "No Match" result from whois, aborting further checks.${RESET}"
                 echo -e "${YELLOW}This might be an error, do your research!${RESET}"
                 return 1 # Stopping the script from running further here
             else
@@ -54,29 +54,26 @@ subdomain_to_fqdn() {
     echo "$main_domain"
 }
 
-# Function to check SSL certificate without --insecure flag
-check_ssl_certificate() {
-    local domain=$1
-    local ssl_info
-    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
-        /^\*  subject:/ { print cyan $0 reset }
-        /^\*  (start|expire) date:/ { print yellow $0 reset }
-        /^\*  issuer:/ { print magenta $0 reset }
-    ')
-    if [ -z "$ssl_info" ]; then
-        echo -e "${RED}Failed to retrieve SSL certificate information. Try using checkcert for more details${RESET}"
-    else
-        echo -e "$ssl_info"
-        echo -e "${GREEN}*  Use${RESET}" "${CYAN}checkcert${RESET}" "${GREEN}or${RESET}" "${CYAN}checkssl${RESET}" "${GREEN}for more info${RESET}"
-    fi
-}
-
-# THE CHECK FUNCTION STARTS HERE!
+# Main function to check most interesting information about any given domain.
 check() {
+    echo "Checking for information on $1:" | lolcat
 spinner=( '/' '-' '\' '|' )
 colors=("$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN")
-echo -e "{GREEN}------------------------------------------ ↓${RESET}"
-# Help section or information centre, explaining the different checks/functions
+
+spin(){
+    local i=0
+    for s in "${spinner[@]}"; do
+        color=${colors[$((i % ${#colors[@]}))]}
+        printf "\r${color}%s${RESET}" "$s"
+        sleep 0.1
+        ((i++))
+    done
+}
+for _ in {1..1}; do
+    spin
+done
+printf "\r${GREEN}------------------------------------------ ↓${RESET}"
+# Help section / Information centre
 echo
     if [ "$1" = "--help" ]; then
         echo -e "${GREEN}Usage: check domain.tld${RESET}"
@@ -99,7 +96,6 @@ echo
             echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
             return
         fi
-
     # EMPTY INPUT
     if [ -z "$1" ]; then
         echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
@@ -128,7 +124,7 @@ echo
     # HTTP, WEB, REDIR, AND WWW FORWARDING CHECK
     http_status=$(curl -s -o /dev/null -w "%{http_code}" -L --head "https://$1")
     redirect_url=$(curl -s -L -I "https://$1" | grep -i ^Location: | tail -1 | cut -d ' ' -f 2)
-    # Check for http-status-based-forwarding
+    # Check for http-based status-forwarding
     case "$http_status" in
     301|302|303|307|308)
         echo -e "${YELLOW}WEB FORWARDING RECORD (HTTP $http_status)${RESET}"
@@ -171,8 +167,8 @@ esac
     fi
     spf_result=$(dig +short spf "$1" | grep 'v=spf')
     if [ -n "$spf_result" ]; then
-        echo -e "${GREEN}Custom 'SPF-type' DNS record found: $spf_result${RESET}"
-        echo -e "${YELLOW}It's better to add the SPF record as a TXT record${RESET}"
+        echo -e "${GREEN}Custom 'SPF' type DNS record found: $spf_result${RESET}"
+        echo -e "${RED}These types of records work poorly!${RESET}"
     fi
 
     # NAMESERVERS
@@ -183,25 +179,34 @@ esac
     else
         echo -e "${GREEN}$ns_result${RESET}"
     fi
-    
+
     # REVERSE DNS LOOKUP
     echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
-    # Check and perform Reverse DNS lookup for A record
+    # Perform a reverse dns lookup on the domains A record
     reverse_result_a=$(dig -x "$a_result" +short)
-    # Compare A result with specific IP address and handle different scenarios
+    # Check if the result is our SSL proxy
     if [ "$a_result" = "104.37.39.71" ]; then
         echo -e "${GREEN}This is our redirect proxy${RESET}" "${CYAN}(104.37.39.71)${RESET}" 
         echo -e "${BLUE}Domain has default A record${RESET}" "${MAGENTA}or it's --> forwarding${RESET}"
+        # Check if the result is SOA (Start of Authority)
     elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
-        echo -e "${RED}Failed${RESET}" "${YELLOW}(A record)${RESET}" "${GREEN}or it was SOA.${RESET}"
+        echo -e "${RED}Failed to lookup the server${RESET}" "${YELLOW}(A record)${RESET}" "${GREEN}or it was SOA.${RESET}"
     else
         echo -e "${GREEN}$reverse_result_a${RESET}"
     fi
-    # Check and perform Reverse DNS lookup for AAAA record
+    # Perform a reverse dns lookup on the domains AAAA record
     if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
         # Extract the first valid IPv6 address
         local first_aaaa_address=$(echo "$aaaa_result" | head -n 1)
         reverse_result_aaaa=$(dig -x "$first_aaaa_address" +short)
+
+        # Post the result unless it's SOA (Start of Authority)
+        if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
+            echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
+        else
+            echo -e "${RED}Failed to lookup the server${RESET}" "${YELLOW}(AAAA record)${RESET}" "${GREEN}or it was SOA${RESET}"
+        fi
+    fi
 
     # REGISTRAR
     local domain=$1
@@ -217,12 +222,12 @@ esac
     # If not found, attempt to find using 'Registrar Handle'
     if [ -z "$registrar_result" ]; then
         registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar Handle' | sed -n 's/Registrar Handle...........: *//p' | head -n 1 | xargs)
-        # Extract registrar name if 'Registrar Handle' is found
+        # Extract registrar name if 'Registrar Handle' is found and append it to the output []
         if [ -n "$registrar_result" ]; then
             local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
         fi
     fi
-    # Check for registrar result
+    # Using the extracted name from the previous statement to
     if [ -n "$registrar_result" ]; then
         # Check if registrar name is found and if the result starts with 'REG'
         if [ -n "$registrar_name" ] && [[ "${registrar_result:0:3}" == "REG" ]]; then
@@ -239,13 +244,29 @@ esac
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
     check_ssl_certificate "$1"
 }
+    # Function to check SSL certificate without --insecure flag
+check_ssl_certificate() {
+    local domain=$1
+    local ssl_info
+    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
+        /^\*  subject:/ { print cyan $0 reset }
+        /^\*  (start|expire) date:/ { print yellow $0 reset }
+        /^\*  issuer:/ { print magenta $0 reset }
+    ')
+    if [ -z "$ssl_info" ]; then
+        echo -e "${RED}Failed to retrieve SSL certificate information. Try using checkcert for detailed diagnostics.${RESET}"
+    else
+        echo -e "$ssl_info"
+        echo -e "${GREEN}*  Use${RESET}" "${BLUE}checkcert${RESET}" "${GREEN}or${RESET}" "${BLUE}checkssl${RESET}" "${GREEN}for more info${RESET}"
+    fi
+}
 
 # ADD-ON FUNCTIONALITY
-# checkssl to connect via openssl and view certificate chain
-# checkcert to show SSL information (sanizied output) and retry if that fails
+# checkssl to connect via openssl and view certificate chain.
+# checkcert to show SSL information (sanizied output) and retry if that fails.
 
-# Function 'checkcert' to look TLS information using curl
-checkcert() {
+# Function to curl a site via TLS and print the connection information.
+function checkcert() {
   if [ -z "$1" ]; then
     echo -e "${YELLOW}Usage: checkcert <domain.tld> to connect via HTTPS and print TLS connection information.${RESET}"
     return 1
@@ -259,28 +280,26 @@ checkcert() {
   ')
   # Check if the TLS connection check failed
   if [ -z "$tls_info" ]; then
-    echo -e "${RED}Failed to establish a TLS connection${RESET}"
-    echo -e "${MAGENTA}Retrying without sanitizing the output${RESET}"
-    # Retry the TLS connection check sanitizing the output in any way
+    echo -e "${RED}Failed to establish a TLS connection. Retrying without modifications...${RESET}"
+    # Retry the TLS connection check without modifications
     tls_info=$(curl --insecure -vvI "https://$1" 2>&1)
     
     if [ -z "$tls_info" ]; then
-      echo -e "${RED}Failed to establish a TLS connection even on retry!${RESET}"
-      echo -e "${YELLOW}Ensure you entered a valid domain name${RESET}"
+      echo -e "${RED}Failed to establish a TLS connection even on retry. Check the domain or try again.${RESET}"
       return 1
     fi
     # Print the TLS connection information after retry
-    echo -e "${GREEN}TLS connection information for $1 after retrying without sanitized output:${RESET}"
+    echo -e "${GREEN}TLS connection information for $1 after retrying with no sanitized output:${RESET}"
     echo -e "$tls_info"
     echo "${RED}Still nothing? There's likely not a SSL certificate on the server!${RESET}"
   else
     # Print the TLS connection information if the initial check succeeded
-    echo -e "${GREEN}TLS connection information for $1:${RESET}"
+    echo -e "${GREEN}TLS Connection Information for $1:${RESET}"
     echo -e "$tls_info"
   fi
 }
 
-# Function 'checkssl' using openssl to connect to a hostname and show the complete certificate chain
+# Connect to a hostname using openssl to show complete certificate chain.
 checkssl() {
   openssl s_client --showcerts --connect "$1:443" 2>/dev/null | awk -v RED="$RED" -v GREEN="$GREEN" -v YELLOW="$YELLOW" -v BLUE="$BLUE" -v MAGENTA="$MAGENTA" -v CYAN="$CYAN" -v RESET="$RESET" '
     /Server certificate/ { print CYAN $0 RESET; next }
