@@ -1,47 +1,62 @@
-## **About this tool**
+## **About this tool/script**
 Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
 
-![image](https://github.com/zhk3r/check/assets/37957791/f9d01e4e-f8ea-4913-9ce5-c423a35bef9c)
+![front](https://github.com/zhk3r/check/assets/37957791/2103887d-3946-44cc-bd0b-edc2205a0b27)
 
 
 ## **Installation and setup**
-
-1) Add ```export PATH="check:$PATH"``` to your .zshrc or equivalent.
-2) Add ```source ~/check/check_function.zsh``` to your .zshrc or equivalent.
-3) (Optional) set an alias for the update script (ex: alias updatecheck='update_check.sh')
-4) ```git clone https://github.com/zhk3r/check.git``` to clone this repo.
-5) ```chmod +x ~/check/update_check.sh``` to make the update script run.
-6) Restart your terminal.
+| Copy-paste this!                                     | "But to where you ask"                        |
+| :----------------------------------------------------|:----------------------------------------------|
+| ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
+| ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
+| ```git clone https://github.com/zhk3r/check.git```   | to clone this repo.                           |
+| ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
+| ```source .zshrc```                                  | or equivalent (restart terminal)              |
 
 You should be good to go!
 
-## **Preliminary checks before actually starting the script** 
-1) Checks for 'NXDOMAIN' status in the header-information.
-2) Checks whether or not the domain SOA beings with 'charm.norid.no' e.g *[quarantine]*
-   
-- If the domain has the 'NXDOMAIN' status the script will inform about it and stop. 
-- If the domain SOA matches 'charm.norid.no' the script will inform about it and stop. 
+### Updating the script
+After updating the script you will have to either, 
 
-## **Domain information**
-The script will look for the following information on the given domain:
+1) ```source .zshrc``` (or equivalent).
+2) Restart your terminal.
+3) Open up a new terminal tab.
 
-1) A and AAAA records.
-2) Forwarding of all types: HTTP-status, redirTXT, DNS, Parked messages and such.
-3) MX records
-4) SPF records using 'TXT' type and custom 'SPF' type (the tool will inform if it's the special-type)
-5) Nameservers
-6) Reverse DNS lookup of the A and AAAA record
-- Hardcoded check for 104. SSL proxy.
-- Looks up the Apex domains (A) + (AAAA) records and performs a reverse dns lookup.
-7) Checks Registrar information, does multiple lookups depending on types of results.
-8) SSL certificate information: CN (Common Name), Issuer, Start & Expiry dates.
+# **Lookup a domains information**
+
+```check domain.tld``` will first:
+```
+Look for 'status: NXDOMAIN' in the header information from the initial dig a return.
+Check if the Start of Authority (SOA) is *charm.norid.no* to determine if the domain is in QUARANTINE.
+```
+*If the domain doesn't pass these checks the script will inform of such and stop running.*
+
+If the domain passes the first tests the script will continue to check for the following:
+
+| ~       | ~         | ~                                                 |
+| :-------|:----------|:--------------------------------------------------|
+| RECORD  | A         | Looks up all A records.                           |
+| RECORD  | AAAA      | Looks up all AAAA records.                        |
+| FORWARD | HTTP      | HTTP-STATUS (301, 307, etc) forwarding            |
+| FORWARD | REDIR     | TXT ```_redir``` forwarding                       |
+| FORWARD | PARKED    | TXT containing ```parked```                       |
+| RECORD  | MX        | MX records                                        |
+| RECORD  | SPF       | Looks for SPF in ```TXT``` and ```SPF``` records  |
+| RECORD  | NS        | Nameservers                                       |
+| REVERSE | DNS       | Performs a reverse-dns lookup on both A & AAAA    |
+| WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
+| CURL    | SSL CERT  | Curls with and without insecure flag to check SSL |
 
   ### Secondary functions
-  ```checkcert``` can be used to display a bit more information about the SSL certificate.
 
-   ```checkssl``` can be used to connect to the hostname using ```openssl``` protocol, displaying the certificate chain.
+  | Command         | What it does
+  | :---------------| :------------------------------------------------------------------------------------------------------|
+  | ```checkcert``` | can be used to display a bit more information about the SSL certificate.                               |
+  | ```checkssl```  | can be used to connect to the hostname using ```openssl``` protocol, displaying the certificate chain. |
 
 ## **Output and sanitazion of information**
+
+There are some hidden checks that happen during some of the checks, these include but are possibly not limited to:
 
 Some of the functions sanitize the output in order to show only relevant information. Some of these checks includes the WHOIS lookup which accounts for a subdomain being input, WHOIS lookup where a secondary lookup is done if special paramaters are met. The reverse DNS lookup part also has rules that sanitizes the information if the result isn't relevant (in.addr.rpa, SOA).
 
@@ -51,4 +66,4 @@ Some of the functions sanitize the output in order to show only relevant informa
 - whois
 - openssl
 - curl
-- lolcat *(not strictly necessary, you can remove* ```| lolcat``` *from line 65)*
+- lolcat *(not strictly necessary, you can remove* ```| lolcat``` *from line 76)*

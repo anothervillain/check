@@ -12,4 +12,4 @@ git pull
 # Return to the original directory
 cd $CURRENT_DIR
 
-echo "check function updated successfully."
+echo "check updated successfully!"
