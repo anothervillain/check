@@ -71,6 +71,60 @@ check_ssl_certificate() {
     fi
 }
 
+# Function to perform A record lookup
+lookup_a_record() {
+    local domain=$1
+    dig a "$domain" +short
+}
+
+# Function to perform AAAA record lookup
+lookup_aaaa_record() {
+    local domain=$1
+    dig aaaa "$domain" +short
+}
+
+# Function to perform Reverse DNS lookup
+perform_reverse_lookup() {
+    local ip_address=$1
+    dig -x "$ip_address" +short
+}
+
+# Function to handle A record lookup result
+handle_a_record_result() {
+    local a_result=$1
+    local next_a_result=$2
+    if [ "$a_result" = "104.37.39.71" ]; then
+        echo -e "${GREEN}This is our redirect proxy${RESET} ${CYAN}(104.37.39.71)${RESET}"
+        echo -e "${BLUE}Domain has default A record${RESET} ${MAGENTA}or it's forwarding${RESET}"
+    elif [[ -z "$a_result" || $a_result == *"SOA"* ]]; then
+        echo -e "${RED}Failed${RESET} ${YELLOW}(A record)${RESET} ${GREEN}or it was SOA.${RESET}"
+        if [[ -n "$next_a_result" ]]; then
+            a_result=$(perform_reverse_lookup "$next_a_result")
+            echo -e "${GREEN}Next A record result: $a_result${RESET}"
+        fi
+    else
+        echo -e "${GREEN}$a_result${RESET}"
+    fi
+}
+
+# Function to handle AAAA record lookup result
+handle_aaaa_record_result() {
+    local aaaa_result=$1
+    local next_aaaa_result=$2
+    if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
+        local reverse_result_aaaa=$(perform_reverse_lookup "$aaaa_result")
+        if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
+            echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
+        else
+            echo -e "${RED}Failed${RESET} ${YELLOW}(AAAA record)${RESET} ${GREEN}or it was SOA.${RESET}"
+            if [[ -n "$next_aaaa_result" ]]; then
+                reverse_result_aaaa=$(perform_reverse_lookup "$next_aaaa_result")
+                echo -e "${GREEN}Next AAAA record result: $reverse_result_aaaa${RESET}"
+            fi
+        fi
+    fi
+}
+
 # THE CHECK FUNCTION STARTS HERE!
 check() {
     echo "Checking for information on $1:" | lolcat
@@ -122,6 +176,20 @@ echo
 
     # NXDOMAIN & QUARANTINE CHECK
     check_nxdomain $1 || return
+
+    local domain=$1
+    local a_results=$(lookup_a_record "$domain")
+    local aaaa_results=$(lookup_aaaa_record "$domain")
+    # Extract first A and AAAA records
+    local first_a_result=$(echo "$a_results" | head -n 1)
+    local first_aaaa_result=$(echo "$aaaa_results" | head -n 1)
+    # Extract next A and AAAA records
+    local next_a_result=$(echo "$a_results" | sed -n '2p')
+    local next_aaaa_result=$(echo "$aaaa_results" | sed -n '2p')
+    # Handle A and AAAA record results
+    handle_a_record_result "$first_a_result" "$next_a_result"
+    handle_aaaa_record_result "$first_aaaa_result" "$next_aaaa_result"
+}
 
     # A RECORD(S)
     echo -e "${YELLOW}A RECORD(S)${RESET}"
