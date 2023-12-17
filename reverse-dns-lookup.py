@@ -5,9 +5,10 @@ import os
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
 YELLOW = "\033[0;33m"
+BLUE = "\033[0;34m"
 RESET = "\033[0m"
 
-def dig_reverse_dns_lookup(ip_address):
+def dig_reverse_dns_lookup(ip_address, record_type):
     try:
         # Using dig command for detailed reverse DNS lookup
         result = subprocess.check_output(["dig", "-x", ip_address, "+noall", "+answer", "+authority"], text=True).strip()
@@ -16,7 +17,7 @@ def dig_reverse_dns_lookup(ip_address):
             ptr_records = [line.split('PTR')[-1].strip() for line in result.splitlines() if "PTR" in line]
             if ptr_records:
                 # Return PTR record(s) content
-                return "PTR", f"{GREEN}{' '.join(ptr_records)}{RESET}"
+                return "PTR", f"{GREEN}{' '.join(ptr_records)}{RESET} ({YELLOW}{record_type}{RESET})"
             else:
                 # Check for SOA record if no PTR record is found
                 soa_record = next((line for line in result.splitlines() if "SOA" in line), None)
@@ -31,13 +32,22 @@ def dig_reverse_dns_lookup(ip_address):
         return "ERROR", f"{RED}Lookup failed for {ip_address}: {e}{RESET}"
 
 def print_relevant_answers(ip_addresses, record_type, domain):
-    soa_found = False
+    ptr_records = []
+    soa_records = set()
     for ip in ip_addresses:
-        record_type_found, result = dig_reverse_dns_lookup(ip)
-        if record_type_found == "SOA" and not soa_found:
-            print(f"{RED}Could not find PTR for {domain}: Start of Authority (SOA){RESET}")
-            soa_found = True
-        print(f"{result} ({YELLOW}{record_type}{RESET})" if record_type_found != "NONE" else result)
+        record_type_found, result = dig_reverse_dns_lookup(ip, record_type)
+        if record_type_found == "PTR":
+            ptr_records.append(result)
+        elif record_type_found == "SOA":
+            soa_records.add(result)
+
+    if ptr_records:
+        for record in ptr_records:
+            print(record)
+    elif soa_records:
+        print(f"{BLUE}Could not find PTR for {domain}, SOA (Start of Authority) begins{RESET}")
+        for record in soa_records:
+            print(record)
 
 # Load domain from the file created by the .zsh script
 if os.path.exists('current_domain.txt'):
