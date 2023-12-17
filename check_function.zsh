@@ -201,38 +201,37 @@ esac
     # REVERSE DNS LOOKUP
     echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
 
-    # Function to perform A record lookup and get the first IP
-    lookup_a_record() {
-        local domain=$1
-        dig a "$domain" +short | head -1
-    }
+# Function to perform A record lookup and get the first IP
+lookup_a_record() {
+    local domain=$1
+    dig a "$domain" +short | head -1
+}
 
-    # Function to perform Reverse DNS lookup
-    perform_reverse_lookup() {
-        local ip=$1
-        dig -x "$ip" +short
-    }
+# Function to perform Reverse DNS lookup and extract PTR record
+perform_reverse_lookup() {
+    local ip=$1
+    dig -x "$ip" +short
+}
 
-    # Function to handle the Reverse DNS lookup result
-    handle_reverse_dns_result() {
-        local ip=$1
-        local reverse_dns_result=$(perform_reverse_lookup "$ip")
+# Main function to handle the Reverse DNS lookup process
+handle_reverse_dns_lookup() {
+    local domain=$1
+    local ip_address=$(lookup_a_record "$domain")
 
-        # Check if the reverse DNS result contains a PTR record
-        if [[ -n "$reverse_dns_result" ]]; then
-            echo -e "${GREEN}PTR Record: $reverse_dns_result${RESET}"
+    if [[ -n "$ip_address" ]]; then
+        local ptr_record=$(perform_reverse_lookup "$ip_address")
+        if [[ -n "$ptr_record" ]]; then
+            echo -e "${GREEN}PTR Record for $domain ($ip_address): $ptr_record${RESET}"
         else
-            echo -e "${RED}No PTR Record found${RESET}"
+            echo -e "${RED}No PTR Record found for $domain ($ip_address)${RESET}"
         fi
-    }
+    else
+        echo -e "${RED}A record lookup failed for $domain${RESET}"
+    fi
+}
 
-# Lookup A record for the domain and handle Reverse DNS
-ip_address=$(lookup_a_record "$1")
-if [[ -n "$ip_address" ]]; then
-    handle_reverse_dns_result "$ip_address"
-else
-    echo -e "${RED}A record lookup failed for $1${RESET}"
-fi
+# Run the Reverse DNS lookup for the provided domain
+handle_reverse_dns_lookup "$1"
     # REGISTRAR
     local domain=$1
     echo -e "${YELLOW}REGISTRAR${RESET}"
