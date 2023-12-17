@@ -62,6 +62,7 @@ Some of the functions sanitize the output in order to show only relevant informa
 
 ### **Dependencies**
 
+- python / python3
 - dig
 - whois
 - openssl
