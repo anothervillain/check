@@ -1,6 +1,6 @@
 # FUNCTIONS NESTED OUTSIDE OF 'check' ITSELF TO AVOID CLUSTERFUCK.
 # THESE CAN BE CALLED UPON BY OTHER FUNCTIONS INSIDE 'check' ITSELF.
-# USE THE ANSI COLOR CODES BELOW.
+# USE THE ANSI COLOR CODES BELOW!
 
 # ANSI color codes
 RED="\033[0;31m"
@@ -11,57 +11,68 @@ MAGENTA="\033[0;35m"
 CYAN="\033[0;36m"
 RESET="\033[0m"
 
-# Function to check for NXDOMAIN status in a domain response
+# Function to check domain header for status: NXDOMAIN
 check_nxdomain() {
-    # Perform a DNS query for the given domain
+    # Perform a prelimiary 'dig a' on the given domain
     local domain_status=$(dig a $1 +cmd)
-    # Check if the response contains status: NXDOMAIN
+    # Check if the header contains status: NXDOMAIN
     if echo "$domain_status" | grep -q 'status: NXDOMAIN'; then
-        # Check if 'charm.norid.no' is in the result
+        # Check if 'charm.norid.no' is in SOA for the domain
         if echo "$domain_status" | grep -q 'charm.norid.no'; then
-            # Perform a WHOIS query on the domain
+            # Perform a WHOIS on the domain
             local whois_result=$(whois $1)
             # Check if WHOIS result contains "No match"
             if echo "$whois_result" | grep -q 'No match'; then
-                # Print NXDOMAIN status if WHOIS returns "No match" and stop further execution
-                echo -e "${RED}NXDOMAIN: No Match found in WHOIS, aborting further checks.${RESET}"
-                return 1 # Exiting the function with status 1 to indicate an error or stop condition
+                # WHOIS check for .no domains specifically to determine if the domain is in quarantine.
+                echo -e "${RED}NXDOMAIN: Non-existent domain, aborting further checks.${RESET}"
+                echo -e "${YELLOW}This might be an error, do your research!${RESET}"
+                return 1 # Stopping the script from running further here
             else
-                # Print the SOA result if WHOIS returns other output
-                echo -e "${RED}The domain $1 is in QUARANTINE @ charm.norid.no${RESET} ${GREEN}--> Owner change!${RESET}"
-                return 1 # Exiting the function with status 1 to indicate an error or stop condition
+                # If the above checks fail it indicates the domain is in quarantine by SOA response.
+                echo -e "${RED}$1 looks to be in QUARANTINE${RESET}" "${BLUE}charm.norid.no${RESET}"
+                echo -e "${YELLOW}This might be an error, do your research!${RESET}"
+                return 1 # Stopping the script from running further here
             fi
         else
-            # Print NXDOMAIN if no other values are found
+            # If the NXDOMAIN status is found, but no SOA starting with 'charm.norid.no'
             echo -e "${RED}NXDOMAIN: Non-existent domain, aborting further checks.${RESET}"
             echo -e "${YELLOW}Please verify that you entered the correct domain name.${RESET}"
-            return 1 # Exiting the function with status 1 to indicate an error or stop condition
+            return 1 # Stopping the script from running further here
         fi
     fi
 }
-# Function to ping a domain and store the outcome, only informs if the domain is not reachable.
-check_reachable() {
-    local ping_result=$(ping -c 1 $1)
-    if echo "$ping_result" | grep -q '1 packets transmitted, 0 received'; then
-        echo -e "${RED}The domain is not reachable (using ping $1).${RESET}"
-    fi
-}
 
-# Function to convert subdomain to FQDN during WHOIS lookup.
+# Function to convert subdomain to FQDN for WHOIS lookup ## (Can this mess up?)
 subdomain_to_fqdn() {
     local domain=$1
     local main_domain="${domain##*.}" 
     domain="${domain%.*}"             
     main_domain="${domain##*.}.$main_domain"
     if [[ "$main_domain" != "$1" ]]; then
-        echo -e "${RED}$1 doesn't look like a FQDN! ${GREEN}WHOIS for $main_domain:${RESET}" >&2
+        echo -e "${RED}$1 doesn't look like a FQDN${RESET}" "${GREEN}WHOIS for $main_domain:${RESET}" >&2
     fi
     echo "$main_domain"
 }
 
-# Main function to check most interesting information about any given domain.
+# Function to check SSL certificate without --insecure flag
+check_ssl_certificate() {
+    local domain=$1
+    local ssl_info
+    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
+        /^\*  subject:/ { print cyan $0 reset }
+        /^\*  (start|expire) date:/ { print yellow $0 reset }
+        /^\*  issuer:/ { print magenta $0 reset }
+    ')
+    if [ -z "$ssl_info" ]; then
+        echo -e "${RED}Failed to retrieve SSL certificate information. Try using checkcert for more details${RESET}"
+    else
+        echo -e "$ssl_info"
+        echo -e "${GREEN}*  Use${RESET}" "${CYAN}checkcert${RESET}" "${GREEN}or${RESET}" "${CYAN}checkssl${RESET}" "${GREEN}for more info${RESET}"
+    fi
+}
+
+# THE CHECK FUNCTION STARTS HERE!
 check() {
-    # Welcome message & spinner animation
     echo "Checking for information on $1:" | lolcat
 spinner=( '/' '-' '\' '|' )
 colors=("$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN")
@@ -79,7 +90,7 @@ for _ in {1..1}; do
     spin
 done
 printf "\r${GREEN}------------------------------------------ ↓${RESET}"
-# Help section
+# Help section or information centre, explaining the different checks/functions
 echo
     if [ "$1" = "--help" ]; then
         echo -e "${GREEN}Usage: check domain.tld${RESET}"
@@ -98,19 +109,15 @@ echo
         echo "  ${GREEN}--> A secondary function 'blocklist' can be used to look up domain.tld, IPv4 or IPv6 addresses.${RESET}"
         return
     fi
-        if [ -z "$1" ]; then
-            echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
-            return
-        fi
     # EMPTY INPUT
     if [ -z "$1" ]; then
         echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
         return
     fi
-    # NXDOMAIN CHECK
+
+    # NXDOMAIN & QUARANTINE CHECK
     check_nxdomain $1 || return
-    # PING CHECK
-    #check_reachable $1 || return
+
     # A RECORD(S)
     echo -e "${YELLOW}A RECORD(S)${RESET}"
     a_result=$(dig a "$1" +short)
@@ -119,23 +126,25 @@ echo
     else
         echo -e "${GREEN}$a_result${RESET}"
     fi
+
     # AAAA RECORD(S)
     aaaa_result=$(dig aaaa "$1" +short)
     if [[ -n "$aaaa_result" && ! $aaaa_result =~ "(empty label)" ]]; then
         echo -e "${YELLOW}AAAA RECORD(S)${RESET}"
         echo -e "${GREEN}$aaaa_result${RESET}"
     fi
+
     # HTTP, WEB, REDIR, AND WWW FORWARDING CHECK
     http_status=$(curl -s -o /dev/null -w "%{http_code}" -L --head "https://$1")
     redirect_url=$(curl -s -L -I "https://$1" | grep -i ^Location: | tail -1 | cut -d ' ' -f 2)
-    # Check for HTTP status-based forwarding
+    # Check for http-status-based-forwarding
     case "$http_status" in
     301|302|303|307|308)
         echo -e "${YELLOW}WEB FORWARDING RECORD (HTTP $http_status)${RESET}"
         echo -e "${GREEN}The domain $1 is forwarding with HTTP $http_status status.${RESET}"
-        # Check for root to www forwarding
+        # Check for forwarding from root to www
         if [[ "$redirect_url" =~ https://www.$1/? ]]; then
-            echo -e "${GREEN}The domain is forwarding from root --> www.$1${RESET}"
+            echo -e "${GREEN}The domain is forwarding from $1 --> www.$1${RESET}"
         fi
 esac
     # Check for _redir TXT forwarding
@@ -144,13 +153,14 @@ esac
         echo -e "${YELLOW}TXT FORWARDING USING _redir${RESET}"
         echo -e "${GREEN}$txt_redir_result${RESET}"
     fi
-    # Check for PARKED TXT records.
+    # Check for PARKED TXT records (Can probably flesh this one out)
     parked_txt_record=$(dig +short txt "$1" | grep -i "^\"parked")
     if [ -n "$parked_txt_record" ]; then
     echo -e "${YELLOW}PARKED DOMAIN${RESET}"
-    echo -e "${GREEN}The domain $1 is parked in TXT.${RESET}"
+    echo -e "${GREEN}The domain $1 looks like it's parked${RESET}"
     else
     fi
+
     # MX RECORD(S)
     echo -e "${YELLOW}MX RECORD(S)${RESET}"
     mx_result=$(dig mx "$1" +short)
@@ -159,6 +169,7 @@ esac
     else
         echo -e "${GREEN}$mx_result${RESET}"
     fi
+
     # SPF RECORD
     echo -e "${YELLOW}SPF RECORD${RESET}"
     spf_result=$(dig +short txt "$1" | grep 'v=spf')
@@ -169,9 +180,10 @@ esac
     fi
     spf_result=$(dig +short spf "$1" | grep 'v=spf')
     if [ -n "$spf_result" ]; then
-        echo -e "${GREEN}Custom 'SPF' type DNS record found: $spf_result${RESET}"
-        echo -e "${RED}These types of records work poorly!${RESET}"
+        echo -e "${GREEN}Custom 'SPF-type' DNS record found: $spf_result${RESET}"
+        echo -e "${YELLOW}It's better to add the SPF record as a TXT record${RESET}"
     fi
+
     # NAMESERVERS
     echo -e "${YELLOW}NAMESERVERS${RESET}"
     ns_result=$(dig ns "$1" +short)
@@ -180,85 +192,37 @@ esac
     else
         echo -e "${GREEN}$ns_result${RESET}"
     fi
-# REVERSE DNS LOOKUP
-echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
-# Check and perform Reverse DNS lookup for A record
-reverse_result_a=$(dig -x "$a_result" +short)
-# Compare A result with specific IP address and handle different scenarios
-if [ "$a_result" = "104.37.39.71" ]; then
-    echo -e "${GREEN}This is our redirect proxy${RESET}" "${CYAN}(104.37.39.71)${RESET}" 
-    echo -e "${BLUE}Domain has default A record${RESET}" "${MAGENTA}or it's --> forwarding${RESET}"
-elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
-    echo -e "${RED}Failed${RESET}" "${YELLOW}(A record)${RESET}" "${GREEN}or it was SOA.${RESET}"
-else
-    echo -e "${GREEN}$reverse_result_a${RESET}"
-fi
-# Check and perform Reverse DNS lookup for AAAA record
-if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
-    # Extract the first valid IPv6 address
-    local first_aaaa_address=$(echo "$aaaa_result" | head -n 1)
-    reverse_result_aaaa=$(dig -x "$first_aaaa_address" +short)
 
-    # Handle different scenarios for AAAA record
-    if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
-        echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
-    else
-        echo -e "${RED}Failed${RESET}" "${YELLOW}(AAAA record)${RESET}" "${GREEN}or it was SOA.${RESET}"
+    # REGISTRAR
+    local domain=$1
+    echo -e "${YELLOW}REGISTRAR${RESET}"
+    # Convert subdomain to FQDN
+    local main_domain=$(subdomain_to_fqdn "$domain")
+    # First lookup for registrar result in single-line format
+    local registrar_result_single_line=$(whois "$main_domain" | grep -E 'Registrar:' | sed -n 's/Registrar: *//p' | head -n 1 | xargs)
+    # Second lookup for registrar result in two-line format
+    local registrar_result_two_line=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | awk '/Registrar:/{getline; if ($0 !~ /^ *$/) print; else exit}' | sed 's/^ *//' | xargs)
+    # Combine the results, preferring single-line result if available
+    local registrar_result=${registrar_result_single_line:-$registrar_result_two_line}
+    # If not found, attempt to find using 'Registrar Handle'
+    if [ -z "$registrar_result" ]; then
+        registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar Handle' | sed -n 's/Registrar Handle...........: *//p' | head -n 1 | xargs)
+        # Extract registrar name if 'Registrar Handle' is found
+        if [ -n "$registrar_result" ]; then
+            local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
+        fi
     fi
-fi
-# REGISTRAR
-local domain=$1
-echo -e "${YELLOW}REGISTRAR${RESET}"
-# Convert subdomain to FQDN
-local main_domain=$(subdomain_to_fqdn "$domain")
-# First lookup for registrar result in single-line format
-local registrar_result_single_line=$(whois "$main_domain" | grep -E 'Registrar:' | sed -n 's/Registrar: *//p' | head -n 1 | xargs)
-# Second lookup for registrar result in two-line format
-local registrar_result_two_line=$(whois "$main_domain" | grep -A1 -E 'Registrar:' | awk '/Registrar:/{getline; if ($0 !~ /^ *$/) print; else exit}' | sed 's/^ *//' | xargs)
-# Combine the results, preferring single-line result if available
-local registrar_result=${registrar_result_single_line:-$registrar_result_two_line}
-# If not found, attempt to find using 'Registrar Handle'
-if [ -z "$registrar_result" ]; then
-    registrar_result=$(whois "$main_domain" | grep -A1 -E 'Registrar Handle' | sed -n 's/Registrar Handle...........: *//p' | head -n 1 | xargs)
-    # Extract registrar name if 'Registrar Handle' is found
-    if [ -n "$registrar_result" ]; then
-        local registrar_name=$(echo "$registrar_result" | xargs whois | grep "Registrar Name" | sed 's/.*: //' | head -n 1)
-    fi
-fi
-# Check for registrar result
-if [ -n "$registrar_result" ]; then
-    # Check if registrar name is found and if the result starts with 'REG'
-    if [ -n "$registrar_name" ] && [[ "${registrar_result:0:3}" == "REG" ]]; then
-        echo -e "${GREEN}$registrar_result${RESET}" "${CYAN}[$registrar_name]${RESET}"
-    else
-        echo -e "${GREEN}$registrar_result${RESET}"
-    fi
-else
-    echo -e "${RED}No Registrar information found for $main_domain${RESET}"
-    echo -e "Perform ${YELLOW}whois $main_domain${RESET} instead"
-fi
 
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
     check_ssl_certificate "$1"
 }
-    # Function to check SSL certificate without --insecure flag
-check_ssl_certificate() {
-    local domain=$1
-    local ssl_info
-    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
-        /^\*  subject:/ { print cyan $0 reset }
-        /^\*  (start|expire) date:/ { print yellow $0 reset }
-        /^\*  issuer:/ { print magenta $0 reset }
-    ')
-    if [ -z "$ssl_info" ]; then
-        echo -e "${RED}Failed to retrieve SSL certificate information. Try using checkcert for detailed diagnostics.${RESET}"
-    else
-        echo -e "$ssl_info"
-        echo -e "${GREEN}*  Use${RESET}" "${BLUE}checkcert${RESET}" "${GREEN}or${RESET}" "${BLUE}checkssl${RESET}" "${GREEN}for more info${RESET}"
-    fi
-}
-# Function to curl a site via TLS and print the connection information.
+
+# ADD-ON FUNCTIONALITY
+# checkssl to connect via openssl and view certificate chain
+# checkcert to show SSL information (sanizied output) and retry if that fails
+
+# Function 'checkcert' to look TLS information using curl
 function checkcert() {
   if [ -z "$1" ]; then
     echo -e "${YELLOW}Usage: checkcert <domain.tld> to connect via HTTPS and print TLS connection information.${RESET}"
@@ -273,25 +237,28 @@ function checkcert() {
   ')
   # Check if the TLS connection check failed
   if [ -z "$tls_info" ]; then
-    echo -e "${RED}Failed to establish a TLS connection. Retrying without modifications...${RESET}"
-    # Retry the TLS connection check without modifications
+    echo -e "${RED}Failed to establish a TLS connection${RESET}"
+    echo -e "${MAGENTA}Retrying without sanitizing the output${RESET}"
+    # Retry the TLS connection check sanitizing the output in any way
     tls_info=$(curl --insecure -vvI "https://$1" 2>&1)
     
     if [ -z "$tls_info" ]; then
-      echo -e "${RED}Failed to establish a TLS connection even on retry. Check the domain or try again.${RESET}"
+      echo -e "${RED}Failed to establish a TLS connection even on retry!${RESET}"
+      echo -e "${YELLOW}Ensure you entered a valid domain name${RESET}"
       return 1
     fi
     # Print the TLS connection information after retry
-    echo -e "${GREEN}TLS Connection Information for $1 (After Retry):${RESET}"
+    echo -e "${GREEN}TLS connection information for $1 after retrying without sanitized output:${RESET}"
     echo -e "$tls_info"
-    echo "${RED}There's likely not a SSL certificate on the server.${RESET}"
+    echo "${RED}Still nothing? There's likely not a SSL certificate on the server!${RESET}"
   else
     # Print the TLS connection information if the initial check succeeded
-    echo -e "${GREEN}TLS Connection Information for $1:${RESET}"
+    echo -e "${GREEN}TLS connection information for $1:${RESET}"
     echo -e "$tls_info"
   fi
 }
-# Connect to a hostname using openssl to show complete certificate chain.
+
+# Function 'checkssl' using openssl to connect to a hostname and show the complete certificate chain
 checkssl() {
   openssl s_client --showcerts --connect "$1:443" 2>/dev/null | awk -v RED="$RED" -v GREEN="$GREEN" -v YELLOW="$YELLOW" -v BLUE="$BLUE" -v MAGENTA="$MAGENTA" -v CYAN="$CYAN" -v RESET="$RESET" '
     /Server certificate/ { print CYAN $0 RESET; next }
@@ -304,24 +271,3 @@ checkssl() {
     { print $0 }
   '
 }
-
-# Allow checkcert and checkssl to be used as flags (ex: check -s domain.tld)
-while getopts "sc" opt; do
-  case $opt in
-    s)
-      checkssl "$OPTARG"
-      ;;
-    c)
-      checkcert "$OPTARG"
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      ;;
-  esac
-done
-
-# If no flags are provided, run the normal script logic
-if [ $# -eq 0 ]; then
-  # Your normal script execution
-fi
-
