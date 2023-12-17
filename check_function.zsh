@@ -71,6 +71,61 @@ check_ssl_certificate() {
     fi
 }
 
+# Function to perform A record lookup
+lookup_a_record() {
+    local domain=$1
+    dig a "$domain" +short
+}
+
+# Function to perform AAAA record lookup
+lookup_aaaa_record() {
+    local domain=$1
+    dig aaaa "$domain" +short
+}
+
+# Function to perform Reverse DNS lookup
+perform_reverse_lookup() {
+    local ip_address=$1
+    dig -x "$ip_address" +short
+}
+
+# Function to handle A record lookup result
+handle_a_record_result() {
+    local a_result=$1
+    local next_a_result=$2
+    if [ "$a_result" = "104.37.39.71" ]; then
+        echo -e "${GREEN}This is our redirect proxy${RESET} ${CYAN}(104.37.39.71)${RESET}"
+        echo -e "${BLUE}Domain has default A record${RESET} ${MAGENTA}or it's forwarding${RESET}"
+    elif [[ -z "$a_result" || $a_result == *"SOA"* ]]; then
+        echo -e "${RED}Failed${RESET} ${YELLOW}(A record)${RESET} ${GREEN}or it was SOA.${RESET}"
+        if [[ -n "$next_a_result" ]]; then
+            a_result=$(perform_reverse_lookup "$next_a_result")
+            echo -e "${GREEN}Next A record result: $a_result${RESET}"
+        fi
+    else
+        echo -e "${GREEN}$a_result${RESET}"
+    fi
+}
+
+# Function to handle AAAA record lookup result
+handle_aaaa_record_result() {
+    local aaaa_result=$1
+    local next_aaaa_result=$2
+    if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
+        local reverse_result_aaaa=$(perform_reverse_lookup "$aaaa_result")
+        if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
+            echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
+        else
+            echo -e "${RED}Failed${RESET} ${YELLOW}(AAAA record)${RESET} ${GREEN}or it was SOA.${RESET}"
+            if [[ -n "$next_aaaa_result" ]]; then
+                reverse_result_aaaa=$(perform_reverse_lookup "$next_aaaa_result")
+                echo -e "${GREEN}Next AAAA record result: $reverse_result_aaaa${RESET}"
+            fi
+        fi
+    fi
+}
+
+
 # THE CHECK FUNCTION STARTS HERE!
 check() {
     echo "Checking for information on $1:" | lolcat
@@ -212,6 +267,7 @@ esac
     fi
     
     # REVERSE DNS LOOKUP
+
     perform_reverse_lookup() {
         local result=$(dig -x $(dig a "$1" +short | head -1))
         echo "$result"
