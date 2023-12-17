@@ -71,76 +71,48 @@ check_ssl_certificate() {
     fi
 }
 
-# Function to perform A record lookup
-lookup_a_record() {
-    local domain=$1
-    dig a "$domain" +short
-}
-
-# Function to perform AAAA record lookup
-lookup_aaaa_record() {
-    local domain=$1
-    dig aaaa "$domain" +short
-}
-
-# Function to perform Reverse DNS lookup
-perform_reverse_lookup() {
-    local ip_address=$1
-    dig -x "$ip_address" +short
-}
-
-# Function to handle A record lookup result
-handle_a_record_result() {
-    local a_result=$1
-    local next_a_result=$2
-    if [ "$a_result" = "104.37.39.71" ]; then
-        echo -e "${GREEN}This is our redirect proxy${RESET} ${CYAN}(104.37.39.71)${RESET}"
-        echo -e "${BLUE}Domain has default A record${RESET} ${MAGENTA}or it's forwarding${RESET}"
-    elif [[ -z "$a_result" || $a_result == *"SOA"* ]]; then
-        echo -e "${RED}Failed${RESET} ${YELLOW}(A record)${RESET} ${GREEN}or it was SOA.${RESET}"
-        if [[ -n "$next_a_result" ]]; then
-            a_result=$(perform_reverse_lookup "$next_a_result")
-            echo -e "${GREEN}Next A record result: $a_result${RESET}"
-        fi
-    else
-        echo -e "${GREEN}$a_result${RESET}"
+# Function to check domain header for status: NXDOMAIN
+check_nxdomain() {
+    # Perform a preliminary 'dig a' on the given domain
+    local domain_status=$(dig a $1 +cmd)
+    # Check if the status is NXDOMAIN
+    if [[ $domain_status =~ "status: NXDOMAIN" ]]; then
+        echo -e "${RED}Domain not found: NXDOMAIN${RESET}"
+        return 1
     fi
+    return 0
 }
 
-# Function to handle AAAA record lookup result
-handle_aaaa_record_result() {
-    local aaaa_result=$1
-    local next_aaaa_result=$2
-    if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
-        local reverse_result_aaaa=$(perform_reverse_lookup "$aaaa_result")
-        if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
-            echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
-        else
-            echo -e "${RED}Failed${RESET} ${YELLOW}(AAAA record)${RESET} ${GREEN}or it was SOA.${RESET}"
-            if [[ -n "$next_aaaa_result" ]]; then
-                reverse_result_aaaa=$(perform_reverse_lookup "$next_aaaa_result")
-                echo -e "${GREEN}Next AAAA record result: $reverse_result_aaaa${RESET}"
-            fi
-        fi
+# Function to check A record
+check_A_record() {
+    # Check if domain is NXDOMAIN
+    if ! check_nxdomain $1; then
+        return
     fi
+
+    # Perform 'dig a' on the domain and retrieve A records
+    local a_records=$(dig a $1 +short)
+    
+    # Check if A records are empty
+    if [[ -z $a_records ]]; then
+        echo -e "${YELLOW}No A records found.${RESET}"
+        return
+    fi
+
+    # Print each A record
+    for record in $a_records; do
+        echo -e "${GREEN}A record found: $record${RESET}"
+        # To continue printing all A records, remove 'return' below
+        # return
+    done
 }
-
-
 # THE CHECK FUNCTION STARTS HERE!
 check() {
-    echo "Checking for information on $1:" | lolcat
-    local domain=$1
-    local a_results=$(lookup_a_record "$domain")
-    local aaaa_results=$(lookup_aaaa_record "$domain")
-    # Extract first A and AAAA records
-    local first_a_result=$(echo "$a_results" | head -n 1)
-    local first_aaaa_result=$(echo "$aaaa_results" | head -n 1)
-    # Extract next A and AAAA records
-    local next_a_result=$(echo "$a_results" | sed -n '2p')
-    local next_aaaa_result=$(echo "$aaaa_results" | sed -n '2p')
-    # Handle A and AAAA record results
-    handle_a_record_result "$first_a_result" "$next_a_result"
-    handle_aaaa_record_result "$first_aaaa_result" "$next_aaaa_result"
+    # Check A record for each domain passed as argument
+    for domain in "$@"; do
+        echo -e "${CYAN}Checking domain: $domain${RESET}"
+        check_A_record $domain
+    done
 }
 spinner=( '/' '-' '\' '|' )
 colors=("$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN")
@@ -190,6 +162,23 @@ echo
 
     # NXDOMAIN & QUARANTINE CHECK
     check_nxdomain $1 || return
+
+    # Check for A record function
+check_a_record() {
+    # Get A records for a domain
+    local a_records=$(dig +short A $1)
+    if [[ -z "$a_records" ]]; then
+        echo "No A records found for $1"
+        return
+    fi
+
+    # Loop through each A record and print
+    for record in a_records; do
+        echo "A record for $1: $record"
+        # Remove the return statement below to continue printing all A records
+        return
+    done
+}
 
     # A RECORD(S)
     echo -e "${YELLOW}A RECORD(S)${RESET}"
