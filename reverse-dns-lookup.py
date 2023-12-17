@@ -16,7 +16,7 @@ def dig_reverse_dns_lookup(ip_address):
             ptr_records = [line.split('PTR')[-1].strip() for line in result.splitlines() if "PTR" in line]
             if ptr_records:
                 # Return PTR record(s) content
-                return f"{GREEN}{' '.join(ptr_records)}{RESET}"
+                return "PTR", f"{GREEN}{' '.join(ptr_records)}{RESET}"
             else:
                 # Check for SOA record if no PTR record is found
                 soa_record = next((line for line in result.splitlines() if "SOA" in line), None)
@@ -24,23 +24,25 @@ def dig_reverse_dns_lookup(ip_address):
                     # Extract SOA content and truncate at the final period
                     soa_content = soa_record.split("SOA")[-1].strip()
                     last_period_index = soa_content.rfind('.')
-                    if last_period_index != -1:
-                        return f"{GREEN}{soa_content[:last_period_index + 1]}{RESET}"
-                    else:
-                        return f"{GREEN}{soa_content}{RESET}"
-        return f"{RED}No PTR or SOA record found for {ip_address}{RESET}"
+                    soa_content_truncated = soa_content[:last_period_index + 1] if last_period_index != -1 else soa_content
+                    return "SOA", f"{GREEN}{soa_content_truncated}{RESET}"
+        return "NONE", f"{RED}No PTR or SOA record found for {ip_address}{RESET}"
     except subprocess.CalledProcessError as e:
-        return f"{RED}Lookup failed for {ip_address}: {e}{RESET}"
+        return "ERROR", f"{RED}Lookup failed for {ip_address}: {e}{RESET}"
 
 def print_relevant_answers(ip_addresses, record_type, domain):
+    soa_found = False
     for ip in ip_addresses:
-        result = dig_reverse_dns_lookup(ip)
-        print(f"{result} ({YELLOW}{record_type}{RESET})")
+        record_type_found, result = dig_reverse_dns_lookup(ip)
+        if record_type_found == "SOA" and not soa_found:
+            print(f"{RED}Could not find PTR for {domain}: Start of Authority (SOA){RESET}")
+            soa_found = True
+        print(f"{result} ({YELLOW}{record_type}{RESET})" if record_type_found != "NONE" else result)
 
 # Load domain from the file created by the .zsh script
 if os.path.exists('current_domain.txt'):
     with open('current_domain.txt', 'r') as file:
-        domain = file.read(). strip()
+        domain = file.read().strip()
 else:
     domain = "Unknown"  # Default value in case file does not exist
 
