@@ -101,12 +101,6 @@ check_nxdomain() {
 
 # THE CHECK FUNCTION STARTS HERE!
 check() {
-    # Check A record for each domain passed as argument
-    for domain in "$@"; do
-        echo -e "${CYAN}Checking domain: $domain${RESET}"
-        check_A_record $domain
-    done
-}
 spinner=( '/' '-' '\' '|' )
 colors=("$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN")
 
