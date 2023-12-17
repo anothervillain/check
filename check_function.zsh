@@ -82,6 +82,7 @@ check_nxdomain() {
     fi
     return 0
 }
+
     # Perform 'dig a' on the domain and retrieve A records
     local a_records=$(dig a $1 +short)
     
@@ -95,12 +96,18 @@ check_nxdomain() {
     for record in $a_records; do
         echo -e "${GREEN}A record found: $record${RESET}"
         # To continue printing all A records, remove 'return' below
-        # return
+         return
     done
 }
 
 # THE CHECK FUNCTION STARTS HERE!
 check() {
+    # Check A record for each domain passed as argument
+    for domain in "$@"; do
+        echo -e "${CYAN}Checking domain: $domain${RESET}"
+        check_A_record $domain
+    done
+}
 spinner=( '/' '-' '\' '|' )
 colors=("$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN")
 
