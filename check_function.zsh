@@ -54,7 +54,24 @@ subdomain_to_fqdn() {
     echo "$main_domain"
 }
 
-# Main function to check most interesting information about any given domain.
+    # Function to check SSL certificate without --insecure flag
+check_ssl_certificate() {
+    local domain=$1
+    local ssl_info
+    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
+        /^\*  subject:/ { print cyan $0 reset }
+        /^\*  (start|expire) date:/ { print yellow $0 reset }
+        /^\*  issuer:/ { print magenta $0 reset }
+    ')
+    if [ -z "$ssl_info" ]; then
+        echo -e "${RED}Failed to retrieve SSL certificate information. Try using checkcert for detailed diagnostics.${RESET}"
+    else
+        echo -e "$ssl_info"
+        echo -e "${GREEN}*  Use${RESET}" "${BLUE}checkcert${RESET}" "${GREEN}or${RESET}" "${BLUE}checkssl${RESET}" "${GREEN}for more info${RESET}"
+    fi
+}
+
+# THE CHECK FUNCTION STARTS HERE!
 check() {
     echo "Checking for information on $1:" | lolcat
 spinner=( '/' '-' '\' '|' )
@@ -243,22 +260,6 @@ esac
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
     check_ssl_certificate "$1"
-}
-    # Function to check SSL certificate without --insecure flag
-check_ssl_certificate() {
-    local domain=$1
-    local ssl_info
-    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
-        /^\*  subject:/ { print cyan $0 reset }
-        /^\*  (start|expire) date:/ { print yellow $0 reset }
-        /^\*  issuer:/ { print magenta $0 reset }
-    ')
-    if [ -z "$ssl_info" ]; then
-        echo -e "${RED}Failed to retrieve SSL certificate information. Try using checkcert for detailed diagnostics.${RESET}"
-    else
-        echo -e "$ssl_info"
-        echo -e "${GREEN}*  Use${RESET}" "${BLUE}checkcert${RESET}" "${GREEN}or${RESET}" "${BLUE}checkssl${RESET}" "${GREEN}for more info${RESET}"
-    fi
 }
 
 # ADD-ON FUNCTIONALITY
