@@ -113,7 +113,7 @@ echo
             echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
             return
         fi
-        
+
     # EMPTY INPUT
     if [ -z "$1" ]; then
         echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
@@ -199,57 +199,47 @@ esac
     fi
     
     # REVERSE DNS LOOKUP
-    echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
-    # Perform Reverse DNS lookup
-    perform_reverse_lookup() {
-        local result=$(dig -x "$1" +short)
-        echo "$result"
-    }
+echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
 
-    # Handle Reverse DNS lookup for A record
-    reverse_result_a=$(perform_reverse_lookup "$a_result")
-    if [ "$a_result" = "104.37.39.71" ]; then
-        echo -e "${GREEN}This is our redirect proxy${RESET} ${CYAN}(104.37.39.71)${RESET}" 
-        echo -e "${BLUE}Domain has default A record${RESET} ${MAGENTA}or it's forwarding${RESET}"
-    elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
-        echo -e "${RED}Failed${RESET} ${YELLOW}(A record)${RESET} ${GREEN}or it was SOA.${RESET}"
-        # Test next A record if first lookup fails
-        if [[ -n "$next_a_result" ]]; then
-            reverse_result_a=$(perform_reverse_lookup "$next_a_result")
-            if [[ -n "$reverse_result_a" && ! $reverse_result_a == *"SOA"* ]]; then
-                # Check if result is a PTR record
-                if [[ "$reverse_result_a" == *".in-addr.arpa" ]]; then
-                    echo -e "${GREEN}PTR Record: $reverse_result_a${RESET}"
-                else
-                    echo -e "${GREEN}$reverse_result_a${RESET}"
-                fi
-            else
-                echo -e "${RED}Failed${RESET} ${YELLOW}(Next A record)${RESET} ${GREEN}or it was SOA.${RESET}"
-            fi
-        fi
+# Perform Reverse DNS lookup
+perform_reverse_lookup() {
+    local result=$(dig +noall +answer -x "$1")
+    echo "$result"
+}
+
+# Extract and print PTR record if found
+print_ptr_if_exists() {
+    local lookup_result="$1"
+    local ptr_record=$(echo "$lookup_result" | grep 'PTR' | awk '{print $NF}')
+    if [[ -n "$ptr_record" ]]; then
+        echo -e "${GREEN}PTR Record: $ptr_record${RESET}"
     else
-        # Check if result is a PTR record
-        if [[ "$reverse_result_a" == *".in-addr.arpa" ]]; then
-            echo -e "${GREEN}PTR Record: $reverse_result_a${RESET}"
-        else
-            echo -e "${GREEN}$reverse_result_a${RESET}"
-        fi
+        echo -e "${RED}No PTR Record found${RESET}"
     fi
-    # Handle Reverse DNS lookup for AAAA record
-    if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
-        local first_aaaa_address=$(echo "$aaaa_result" | head -n 1)
-        reverse_result_aaaa=$(perform_reverse_lookup "$first_aaaa_address")
-        if [[ -n "$reverse_result_aaaa" && ! $reverse_result_aaaa == *"SOA"* ]]; then
-            # Check if result is a PTR record
-            if [[ "$reverse_result_aaaa" == *".ip6.arpa" ]]; then
-                echo -e "${GREEN}PTR Record: $reverse_result_aaaa${RESET}"
-            else
-                echo -e "${GREEN}$reverse_result_aaaa${RESET} ${YELLOW}(AAAA)${RESET}"
-            fi
-        else
-            echo -e "${RED}Failed${RESET} ${YELLOW}(AAAA record)${RESET} ${GREEN}or it was SOA.${RESET}"
-        fi
+}
+
+# Handle Reverse DNS lookup for A record
+reverse_result_a=$(perform_reverse_lookup "$a_result")
+if [ "$a_result" = "104.37.39.71" ]; then
+    echo -e "${GREEN}This is our redirect proxy${RESET} ${CYAN}(104.37.39.71)${RESET}" 
+    echo -e "${BLUE}Domain has default A record${RESET} ${MAGENTA}or it's forwarding${RESET}"
+elif [[ -z "$reverse_result_a" || $reverse_result_a == *"SOA"* ]]; then
+    echo -e "${RED}Failed${RESET} ${YELLOW}(A record)${RESET} ${GREEN}or it was SOA.${RESET}"
+    # Test next A record if first lookup fails
+    if [[ -n "$next_a_result" ]]; then
+        reverse_result_a=$(perform_reverse_lookup "$next_a_result")
+        print_ptr_if_exists "$reverse_result_a"
     fi
+else
+    print_ptr_if_exists "$reverse_result_a"
+fi
+
+# Handle Reverse DNS lookup for AAAA record
+if [[ -n "$aaaa_result" && ! $aaaa_result == *"SOA"* ]]; then
+    local first_aaaa_address=$(echo "$aaaa_result" | head -n 1)
+    reverse_result_aaaa=$(perform_reverse_lookup "$first_aaaa_address")
+    print_ptr_if_exists "$reverse_result_aaaa"
+fi
     # REGISTRAR
     local domain=$1
     echo -e "${YELLOW}REGISTRAR${RESET}"
