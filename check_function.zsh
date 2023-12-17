@@ -106,6 +106,22 @@ check_A_record() {
         # return
     done
 }
+    # Check for A record function
+check_a_record() {
+    # Get A records for a domain
+    local a_records=$(dig +short A $1)
+    if [[ -z "$a_records" ]]; then
+        echo "No A records found for $1"
+        return
+    fi
+
+    # Loop through each A record and print
+    for record in a_records; do
+        echo "A record for $1: $record"
+        # Remove the return statement below to continue printing all A records
+        return
+    done
+}
 # THE CHECK FUNCTION STARTS HERE!
 check() {
     # Check A record for each domain passed as argument
@@ -162,23 +178,6 @@ echo
 
     # NXDOMAIN & QUARANTINE CHECK
     check_nxdomain $1 || return
-
-    # Check for A record function
-check_a_record() {
-    # Get A records for a domain
-    local a_records=$(dig +short A $1)
-    if [[ -z "$a_records" ]]; then
-        echo "No A records found for $1"
-        return
-    fi
-
-    # Loop through each A record and print
-    for record in a_records; do
-        echo "A record for $1: $record"
-        # Remove the return statement below to continue printing all A records
-        return
-    done
-}
 
     # A RECORD(S)
     echo -e "${YELLOW}A RECORD(S)${RESET}"
