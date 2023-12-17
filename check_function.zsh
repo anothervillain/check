@@ -128,6 +128,19 @@ handle_aaaa_record_result() {
 # THE CHECK FUNCTION STARTS HERE!
 check() {
     echo "Checking for information on $1:" | lolcat
+    local domain=$1
+    local a_results=$(lookup_a_record "$domain")
+    local aaaa_results=$(lookup_aaaa_record "$domain")
+    # Extract first A and AAAA records
+    local first_a_result=$(echo "$a_results" | head -n 1)
+    local first_aaaa_result=$(echo "$aaaa_results" | head -n 1)
+    # Extract next A and AAAA records
+    local next_a_result=$(echo "$a_results" | sed -n '2p')
+    local next_aaaa_result=$(echo "$aaaa_results" | sed -n '2p')
+    # Handle A and AAAA record results
+    handle_a_record_result "$first_a_result" "$next_a_result"
+    handle_aaaa_record_result "$first_aaaa_result" "$next_aaaa_result"
+}
 spinner=( '/' '-' '\' '|' )
 colors=("$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN")
 
@@ -177,19 +190,6 @@ echo
     # NXDOMAIN & QUARANTINE CHECK
     check_nxdomain $1 || return
 
-    local domain=$1
-    local a_results=$(lookup_a_record "$domain")
-    local aaaa_results=$(lookup_aaaa_record "$domain")
-    # Extract first A and AAAA records
-    local first_a_result=$(echo "$a_results" | head -n 1)
-    local first_aaaa_result=$(echo "$aaaa_results" | head -n 1)
-    # Extract next A and AAAA records
-    local next_a_result=$(echo "$a_results" | sed -n '2p')
-    local next_aaaa_result=$(echo "$aaaa_results" | sed -n '2p')
-    # Handle A and AAAA record results
-    handle_a_record_result "$first_a_result" "$next_a_result"
-    handle_aaaa_record_result "$first_aaaa_result" "$next_aaaa_result"
-}
 
     # A RECORD(S)
     echo -e "${YELLOW}A RECORD(S)${RESET}"
