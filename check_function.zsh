@@ -82,14 +82,6 @@ check_nxdomain() {
     fi
     return 0
 }
-
-# Function to check A record
-check_A_record() {
-    # Check if domain is NXDOMAIN
-    if ! check_nxdomain $1; then
-        return
-    fi
-
     # Perform 'dig a' on the domain and retrieve A records
     local a_records=$(dig a $1 +short)
     
@@ -106,22 +98,7 @@ check_A_record() {
         # return
     done
 }
-    # Check for A record function
-check_a_record() {
-    # Get A records for a domain
-    local a_records=$(dig +short A $1)
-    if [[ -z "$a_records" ]]; then
-        echo "No A records found for $1"
-        return
-    fi
 
-    # Loop through each A record and print
-    for record in a_records; do
-        echo "A record for $1: $record"
-        # Remove the return statement below to continue printing all A records
-        return
-    done
-}
 # THE CHECK FUNCTION STARTS HERE!
 check() {
     # Check A record for each domain passed as argument
