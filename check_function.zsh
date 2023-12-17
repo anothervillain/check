@@ -75,20 +75,7 @@ check_ssl_certificate() {
 check() {
 spinner=( '/' '-' '\' '|' )
 colors=("$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN")
-
-spin(){
-    local i=0
-    for s in "${spinner[@]}"; do
-        color=${colors[$((i % ${#colors[@]}))]}
-        printf "\r${color}%s${RESET}" "$s"
-        sleep 0.1
-        ((i++))
-    done
-}
-for _ in {1..1}; do
-    spin
-done
-printf "\r${GREEN}------------------------------------------ ↓${RESET}"
+echo -e "{GREEN}------------------------------------------ ↓${RESET}"
 # Help section or information centre, explaining the different checks/functions
 echo
     if [ "$1" = "--help" ]; then
@@ -258,7 +245,7 @@ esac
 # checkcert to show SSL information (sanizied output) and retry if that fails
 
 # Function 'checkcert' to look TLS information using curl
-function checkcert() {
+checkcert() {
   if [ -z "$1" ]; then
     echo -e "${YELLOW}Usage: checkcert <domain.tld> to connect via HTTPS and print TLS connection information.${RESET}"
     return 1
