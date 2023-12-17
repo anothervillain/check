@@ -203,7 +203,7 @@ echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
 
 # Perform Reverse DNS lookup
 perform_reverse_lookup() {
-    local result=$$(dig a "$1" +short | head -1)
+    local result=$(dig a "$1" +short | head -1)
     echo "$result"
 }
 
