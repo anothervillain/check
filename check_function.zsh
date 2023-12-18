@@ -71,6 +71,30 @@ check_ssl_certificate() {
     fi
 }
 
+# Function to execute a command with a timeout
+execute_with_timeout() {
+    local duration=$1
+    shift
+    timeout --preserve-status "$duration" "$@"
+}
+
+execute_with_interrupt() {
+    "$@" &
+    local cmd_pid=$!
+    # Wait for the command to finish or user to press Enter
+    read -s -t 0.1 -k 1 input
+    while [ -z "$input" ] && kill -0 $cmd_pid 2> /dev/null; do
+        read -s -t 0.1 -k 1 input
+    done
+    # If user pressed Enter, kill the command
+    if [ -n "$input" ]; then
+        kill $cmd_pid 2> /dev/null
+        echo -e "\n${YELLOW}Skipping current check...${RESET}"
+    fi
+
+    wait $cmd_pid 2> /dev/null
+}
+
 # THE CHECK FUNCTION STARTS HERE!
 check() {
     echo "Checking for information on $1:" | lolcat
@@ -136,7 +160,7 @@ echo
         echo -e "${RED}No A record found for $1${RESET}"
     else
         echo -e "${GREEN}$a_result${RESET}"
-        # Store A record result in a file only if present
+        # Store A record result in a file
         echo "$a_result" | tr ' ' '\n' > a_results.txt
     fi
 
@@ -145,7 +169,7 @@ echo
     if [[ -n "$aaaa_result" && ! $aaaa_result =~ "(empty label)" ]]; then
         echo -e "${YELLOW}AAAA RECORD(S)${RESET}"
         echo -e "${GREEN}$aaaa_result${RESET}"
-        # Store AAAA record result in a file only if present
+        # Store AAAA record result in a file
         echo "$aaaa_result" | tr ' ' '\n' > aaaa_results.txt
     fi
 

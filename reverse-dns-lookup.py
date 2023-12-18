@@ -31,9 +31,15 @@ def dig_reverse_dns_lookup(ip_address, record_type):
     except subprocess.CalledProcessError as e:
         return "ERROR", f"{RED}Lookup failed for {ip_address}: {e}{RESET}"
 
+# Global flag to ensure messages are printed only once
+soa_message_printed = False
+
+# Print only relevant information based on finds
 def print_relevant_answers(ip_addresses, record_type, domain):
+    global soa_message_printed  # Use the global flag
     ptr_records = []
     soa_records = set()
+
     for ip in ip_addresses:
         record_type_found, result = dig_reverse_dns_lookup(ip, record_type)
         if record_type_found == "PTR":
@@ -44,8 +50,11 @@ def print_relevant_answers(ip_addresses, record_type, domain):
     if ptr_records:
         for record in ptr_records:
             print(record)
-    elif soa_records:
-        print(f"{BLUE}Could not find PTR for {domain}, SOA (Start of Authority) begins{RESET}")
+    elif soa_records and not soa_message_printed:
+        # Print the SOA message only once overall
+        print(f"{RED}No PTR found. SOA for {domain} is printed instead{RESET}")
+        print(f"{GREEN}You can try using the digx command: digx {domain}{RESET}")
+        soa_message_printed = True  # Update the flag after printing
         for record in soa_records:
             print(record)
 
