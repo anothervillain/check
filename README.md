@@ -5,22 +5,18 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 
 
 ## **Installation and setup**
-| Copy-paste this!                                     | "But to where you ask"                        |
+| Copy-paste this!                                     | "But to where?" you ask!                      |
 | :----------------------------------------------------|:----------------------------------------------|
 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
 | ```git clone https://github.com/zhk3r/check.git```   | to clone this repo.                           |
 | ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
-| ```source .zshrc```                                  | or equivalent (restart terminal)              |
+| ```source .zshrc``` or ```exec zsh```                | or equivalent shell *(restart terminal)*      |
 
 You should be good to go!
 
 ### Updating the script
-After updating the script you will have to either, 
-
-1) ```source .zshrc``` (or equivalent).
-2) Restart your terminal.
-3) Open up a new terminal tab.
+After updating the script you will have restart your terminal ```exec zsh``` / ```source .zshrc``` (or equivalent)
 
 # **Lookup a domains information**
 
@@ -56,13 +52,11 @@ If the domain passes the first tests the script will continue to check for the f
 
 ## **Output and sanitazion of information**
 
-There are some hidden checks that happen during some of the checks, these include but are possibly not limited to:
-
-Some of the functions sanitize the output in order to show only relevant information. Some of these checks includes the WHOIS lookup which accounts for a subdomain being input, WHOIS lookup where a secondary lookup is done if special paramaters are met. The reverse DNS lookup part also has rules that sanitizes the information if the result isn't relevant (in.addr.rpa, SOA).
+There are a bunch of hidden checks that happen during the script - sometimes it might get stuck on a record lookup, that's because that record is being stored and used for another check later on etc. There's a bunch of stuff like that in the script - in cases where it 'loads' just leave it and it'll continue when it's done processing whatever logic it needs to.
 
 ### **Dependencies**
 
-- python / python3
+- python / python3 <--- this is new, had to change some logic for better results.
 - dig
 - whois
 - openssl
