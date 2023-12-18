@@ -26,7 +26,7 @@ After updating the script (update_check.sh) you will have restart your terminal 
 1) Look for 'status: NXDOMAIN' in the header information from the initial dig a return.
 2) Check if the Start of Authority (SOA) is *charm.norid.no* to determine if the domain is in QUARANTINE.
 
-*[If the domain doesn't pass these checks the script will inform of such and stop running.]*
+**If the domain doesn't pass these checks the script will inform of such and stop running.**
 
 If the domain passes the first tests the script will continue to check for the following:
 
