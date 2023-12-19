@@ -59,13 +59,13 @@ There are a bunch of hidden checks that happen during the script - sometimes it 
 
 In order for the script to run you will need the following:
 
-| Name    | Command
-| :-------|:-------------------------------|
-| python3 | ```sudo apt install python3``` |
-| dig     | ```sudo apt install dig```     |
-| whois   | ```sudo apt install whois```   |
-| openssl | ```sudo apt install openssl``` |
-| curl    | ```sudo apt install curl```    |
-| lolcat  | ```sudo apt install lolcat```  |
+| Name    | Command                        | Why
+| :-------| :------------------------------| :----------------------------------------|
+| python3 | ```sudo apt install python3``` | Used for reverse dns lookup logic        |
+| dig     | ```sudo apt install dig```     | Used for most dns commands               |
+| whois   | ```sudo apt install whois```   | Used to lookup registrar information     |
+| openssl | ```sudo apt install openssl``` | Used to test SSL connectivity            |
+| curl    | ```sudo apt install curl```    | Used to test SSL connectivity            |
+| lolcat  | ```sudo apt install lolcat```  | Used to color some output                |
 
 > You probably have most of these already, you could remove lolcat from line 76 if you so desire.
