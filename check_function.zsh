@@ -24,12 +24,12 @@ check_nxdomain() {
             # Check if WHOIS result contains "No match"
             if echo "$whois_result" | grep -q 'No match'; then
                 # WHOIS check for .no domains specifically to determine if the domain is in quarantine.
-                echo -e "${RED}NXDOMAIN: "No Match" result from whois, aborting further checks.${RESET}"
+                echo -e "${RED}NXDOMAIN:${RESET}" ${YELLOW}"No Match"${RESET}" returned from "${BLUE}Norid${RESET}", aborting further checks.${RESET}"
                 echo -e "${YELLOW}This might be an error, do your research!${RESET}"
                 return 1 # Stopping the script from running further here
             else
                 # If the above checks fail it indicates the domain is in quarantine by SOA response.
-                echo -e "${RED}$1 looks to be in QUARANTINE${RESET}" "${BLUE}charm.norid.no${RESET}"
+                echo -e "${RED}$1 looks to be in QUARANTINE${RESET}" "${YELLOW}SOA:${RESET}" "${BLUE}charm.norid.no.${RESET}"
                 echo -e "${YELLOW}This might be an error, do your research!${RESET}"
                 return 1 # Stopping the script from running further here
             fi
@@ -71,13 +71,14 @@ check_ssl_certificate() {
     fi
 }
 
-# Function to execute a command with a timeout
+# Function to execute a command with a timeout ## INACTIVE
 execute_with_timeout() {
     local duration=$1
     shift
     timeout --preserve-status "$duration" "$@"
 }
 
+# Function to kill the current check and continue ## INACTIVE
 execute_with_interrupt() {
     "$@" &
     local cmd_pid=$!
@@ -95,7 +96,17 @@ execute_with_interrupt() {
     wait $cmd_pid 2> /dev/null
 }
 
-# THE CHECK FUNCTION STARTS HERE!
+# Function reverse-dns-lookup a domain
+dig-x() {
+  if [ -z "$1" ]; then
+    echo "Usage: dig-x <domain.tld> for reverse-dns lookup, printing server information"
+    return 1
+  fi
+
+  dig -x $(dig a "$1" +short | head -1)
+}
+
+# THIS IS THE START OF THE ACTUAL FUNCTION
 check() {
     echo "Checking for information on $1:" | lolcat
 spinner=( '/' '-' '\' '|' )
@@ -114,7 +125,7 @@ for _ in {1..1}; do
     spin
 done
 printf "\r${GREEN}------------------------------------------ ↓${RESET}"
-# Help section / Information centre
+# HELP SECTION ## NEEDS REWRITE
 echo
     if [ "$1" = "--help" ]; then
         echo -e "${GREEN}Usage: check domain.tld${RESET}"
@@ -149,7 +160,6 @@ echo
     # Clear previous A and AAAA record results
     echo "" > a_results.txt
     echo "" > aaaa_results.txt
-
     # Writing the domain to a file for the Python script to read
     echo "$1" > current_domain.txt
 
@@ -189,7 +199,7 @@ esac
     # Check for _redir TXT forwarding
     txt_redir_result=$(dig +short txt "_redir.$1")
     if [ -n "$txt_redir_result" ]; then
-        echo -e "${YELLOW}TXT FORWARDING USING _redir${RESET}"
+        echo -e "${YELLOW}WEB FORWARDING RECORD (_REDIR)${RESET}"
         echo -e "${GREEN}$txt_redir_result${RESET}"
     fi
     # Check for PARKED TXT records (Can probably flesh this one out)
@@ -233,7 +243,6 @@ esac
     fi
 
     # REVERSE DNS LOOKUP (Python)
-    echo -e "${YELLOW}REVERSE DNS LOOKUP${RESET}"
     python3 ~/check/reverse-dns-lookup.py
 
     # REGISTRAR
