@@ -12,7 +12,7 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
 | ```git clone https://github.com/zhk3r/check.git```   | to clone this repo.                           |
 | ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
-| ```source .zshrc``` or ```exec zsh```                | or equivalent shell *(restart terminal)*      |
+| ```exec zsh```                                       | Restart your terminal or shell                |
 
 You should be good to check out some domains now! :)
 
