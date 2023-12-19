@@ -17,7 +17,7 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 You should be good to check out some domains now! :)
 
 #### Updating the script
-After updating the script (update_check.sh) you will have restart your terminal ```exec zsh``` / ```source .zshrc``` (or equivalent)
+After updating the script ```update_check.sh``` you will have restart your terminal ```exec zsh``` (or equivalent)
 
 # **Lookup a domains information**
 
