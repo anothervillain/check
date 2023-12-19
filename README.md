@@ -59,15 +59,13 @@ There are a bunch of hidden checks that happen during the script - sometimes it 
 
 In order for the script to run you will need the following:
 
-> **python** ```sudo apt install python3```
+| Name    | Command
+| :-------|:-------------------------------|
+| python3 | ```sudo apt install python3``` |
+| dig     | ```sudo apt install dig```     |
+| whois   | ```sudo apt install whois```   |
+| openssl | ```sudo apt install openssl``` |
+| curl    | ```sudo apt install curl```    |
+| lolcat  | ```sudo apt install lolcat```  |
 
-> **dig** ```sudo apt install dig```
-
-> **whois** ```sudo apt install whois```
-
-> **openssl** ```sudo apt install openssl```
-
-> **curl** ```sudo apt install curl```
-
-> **lolcat** ```sudo apt install lolcat```
-
+> You probably have most of these already, you could remove lolcat from line 76 if you so desire.
