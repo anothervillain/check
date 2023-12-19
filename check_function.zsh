@@ -97,9 +97,9 @@ execute_with_interrupt() {
 }
 
 # Function reverse-dns-lookup a domain
-dig-x() {
+digx() {
   if [ -z "$1" ]; then
-    echo "Usage: dig-x <domain.tld> for reverse-dns lookup, printing server information"
+    echo "Usage: digx <domain.tld> for reverse-dns lookup, printing server information"
     return 1
   fi
 
