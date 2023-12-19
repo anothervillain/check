@@ -59,20 +59,15 @@ There are a bunch of hidden checks that happen during the script - sometimes it 
 
 In order for the script to run you will need the following:
 
-> **dig**
-sudo apt install dig
+> **python** ```sudo apt install python3```
 
-> **whois**
-sudo apt install whois
+> **dig** ```sudo apt install dig```
 
-> **openssl**
-sudo apt install openssl
+> **whois** ```sudo apt install whois```
 
-> **curl**
-sudo apt install curl
+> **openssl** ```sudo apt install openssl```
 
-> **lolcat**
-sudo apt install lolcat
->
-> *(not strictly necessary, you can remove* ```| lolcat``` *from line 76)*
+> **curl** ```sudo apt install curl```
+
+> **lolcat** ```sudo apt install lolcat```
 
