@@ -14,6 +14,10 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 | ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
 | ```exec zsh```                                       | Restart your terminal or shell                |
 
+If you're feeling epseically lazy.<pre lang="bash">
+sudo apt install lolcat && sudo apt install python3 && sudo apt install whois && git clone https://github.com/zhk3r/check.git && chmod +x ~/check/update_check.sh && echo 'export PATH="check:$PATH"' >> ~/.zshrc
+</pre>
+
 You should be good to check out some domains now! :)
 
 #### Updating the script
