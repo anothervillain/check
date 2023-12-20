@@ -1,18 +1,18 @@
-## **About this tool/script**
-Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
+# **About this tool**
+Usage: ```check domain.tld``` to lookup relevant domain information specific DNS, WHOIS and SSL data.
 
 <kbd>
   <img src="https://github.com/zhk3r/check/assets/37957791/45595ed8-8460-4e7a-9a24-b6a66f0e067e">
 </kbd>
 
 ## **Installation and setup**
-| Copy-paste this                                      | Where                                         |
-| :----------------------------------------------------|:----------------------------------------------|
-| ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
-| ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
-| ```git clone https://github.com/zhk3r/check.git```   | to clone this repo.                           |
-| ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
-| ```exec zsh```                                       | Restart your terminal or shell                |
+| Copy-paste this                                      | Where                                                 |
+| :----------------------------------------------------|:------------------------------------------------------|
+| ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.                     |
+| ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.                     |
+| ```git clone https://github.com/zhk3r/check.git```   | Into your terminal                                    |
+| ```chmod +x ~/check/update_check.sh```               | Into your terminal, this makes the update script run. |
+| ```exec zsh```                                       | Restart your terminal/shell                           |
 
 > If you're feeling epseically lazy you can copy paste this string: (assumes you use zsh+omz)
 <pre lang="bash">
@@ -32,7 +32,7 @@ this status indicates that the domain does not exist, the script will stop here.
 if the Start of Authority is charm.norid.no; a whois (domain.tld) will be performed. if the whois returns with anything but 'No match' the domain exists but is in quarantine.
 </details>
 
-- [x] **Passing the checks the script looks for:**
+- [x] **Passing both checks lets the script look for:**
 
 | What    | Content   |  Explanation                                      |
 | :-------|:----------|:--------------------------------------------------|
@@ -42,25 +42,27 @@ if the Start of Authority is charm.norid.no; a whois (domain.tld) will be perfor
 | FORWARD | REDIR     | DNS redir TXT based fowarding                     |
 | FORWARD | PARKED    | TXT containing ```parked```                       |
 | RECORD  | MX        | MX records                                        |
-| RECORD  | SPF       | Looks for SPF in ```TXT``` and ```SPF``` records  |
+| RECORD  | SPF       | ```v=spf``` in TXT and SPF type records.          |
 | RECORD  | NS        | Nameservers                                       |
-| RECORD  | PTR       | Reverse DNS lookup of the domains A and AAAA IP's |
+| RECORD  | PTR       | Reverse DNS lookup of the A & AAAA records        |
 | WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
-| CURL    | SSL CERT  | Curls with and without insecure flag to check SSL |
+| CURL    | SSL CERT  | With and without insecure flag to check SSL       |
 
 ## Secondary functions
 
+These are supporting functions to the main script that are mostly used for troubleshooting SSL, one using ```openssl``` and the other using ```curl```. The one that uses curl sanitizes a lot of the output, so it gives you the option to retry the connection without any alterations to the output. Lastly the ```digx``` function looks up the primary A records PTR record, fast and dirty reverse DNS lookup.
+
 <pre lang="bash">checkcert</pre>
 
-Allows you to see more information about the SSL certificate, this function uses curl.
+Add-on function that retrieves and displays TLS certificate details for the specified domain using curl. If the initial attempt fails, it retries without alterations to the output formatting and color-codes (asks the user to retry [Y/n])
 
 <pre lang="bash">checkssl</pre>
 
-Allows you to see more the certificate chain and more information, this function uses openssl.
+Add-on function that uses the openssl s_client command to connect to the specified domain over SSL/TLS on port 443 and displays the entire SSL/TLS certificate chain. Can be useful when you need that information for troubleshooting.
 
 <pre lang="bash">digx</pre>
 
-This just extracts the IP from the A record and looks up PTR, allows for no flags.
+Just a glorified alias for doing a reverse-dns-lookup of the primary A record, doesn't allow for flags or anything (yet). I plan to add onto this function.
 
 ### **Output and sanitazion of information**
 
@@ -68,7 +70,7 @@ There are quite a few 'hidden' checks that happen during the script, it stores c
 
 ### **Dependencies**
 
-In order for the script to run you will need the following:
+> In order for the script to run you will need the following:
 
 | Name    | Command                        | Why
 | :-------| :------------------------------| :----------------------------------------|
@@ -79,6 +81,13 @@ In order for the script to run you will need the following:
 | curl    | ```sudo apt install curl```    | Used to test SSL connectivity            |
 | lolcat  | ```sudo apt install lolcat```  | Used to color some output                |
 
-<br>
-
 > You probably have most of these already, you could remove lolcat from line 111 if you so desire.
+
+#### Contribution
+My coworkers for input on the logic, filtering and output of the script <3
+
+#### License
+This project is licensed under Apache 2.0.
+
+#### Contact
+For questions or contributions, contact me wherever you can find me :)
