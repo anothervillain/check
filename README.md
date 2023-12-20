@@ -6,7 +6,7 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 </kbd>
 
 ## **Installation and setup**
-| Copy-paste this!                                     | Where                                         |
+| Copy-paste this                                      | Where                                         |
 | :----------------------------------------------------|:----------------------------------------------|
 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
@@ -36,17 +36,17 @@ if the Start of Authority is charm.norid.no; a whois (domain.tld) will be perfor
 the script tries hard, so sometimes it might look stuck, leave it be for just a little bit.
 </details>
 
-|         |           |                                                   |
+| What    | Content   |  Explanation                                      |
 | :-------|:----------|:--------------------------------------------------|
 | RECORD  | A         | Looks up all A records.                           |
 | RECORD  | AAAA      | Looks up all AAAA records.                        |
 | FORWARD | HTTP      | HTTP-STATUS (301, 307, etc) forwarding            |
-| FORWARD | REDIR     | TXT ```_redir``` forwarding                       |
+| FORWARD | REDIR     | DNS redir TXT based fowarding                     |
 | FORWARD | PARKED    | TXT containing ```parked```                       |
 | RECORD  | MX        | MX records                                        |
 | RECORD  | SPF       | Looks for SPF in ```TXT``` and ```SPF``` records  |
 | RECORD  | NS        | Nameservers                                       |
-| REVERSE | DNS       | Performs a reverse-dns lookup on both A & AAAA    |
+| RECORD  | PTR       | Reverse-dns lookup of A & AAAA IP's               |
 | WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
 | CURL    | SSL CERT  | Curls with and without insecure flag to check SSL |
 
