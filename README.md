@@ -14,7 +14,7 @@ Usage: ```check domain.tld``` to lookup relevant domain information specific DNS
 | ```chmod +x ~/check/update_check.sh```               | Into your terminal, this makes the update script run. |
 | ```exec zsh```                                       | Restart your terminal/shell                           |
 
-> If you're feeling epseically lazy you can copy paste this string: (assumes you use zsh+omz)
+> If you're feeling especially lazy you can copy paste this string: (assumes you use zsh+omz)
 <pre lang="bash">
 sudo apt install lolcat && sudo apt install python3 && sudo apt install whois && git clone https://github.com/zhk3r/check.git && chmod +x ~/check/update_check.sh && echo 'export PATH="check:$PATH"' >> ~/.zshrc && exec zsh
 </pre>
