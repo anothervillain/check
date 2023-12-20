@@ -1,5 +1,5 @@
 ## **About this tool/script**
-Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
+<samp>Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.</samp>
 
 <kbd>
   <img src="https://github.com/zhk3r/check/assets/37957791/45595ed8-8460-4e7a-9a24-b6a66f0e067e">
@@ -14,25 +14,27 @@ Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information 
 | ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
 | ```exec zsh```                                       | Restart your terminal or shell                |
 
-If you're feeling epseically lazy.<pre lang="bash">
-sudo apt install lolcat && sudo apt install python3 && sudo apt install whois && git clone https://github.com/zhk3r/check.git && chmod +x ~/check/update_check.sh && echo 'export PATH="check:$PATH"' >> ~/.zshrc
+###### If you're feeling epseically lazy you can copy paste this string: (assumes you use zsh+omz)
+<pre lang="bash">
+sudo apt install lolcat && sudo apt install python3 && sudo apt install whois && git clone https://github.com/zhk3r/check.git && chmod +x ~/check/update_check.sh && echo 'export PATH="check:$PATH"' >> ~/.zshrc && exec zsh
 </pre>
 
-You should be good to check out some domains now! :)
+## **Lookup relevant domain information**
 
-#### Updating the script
-After updating the script ```update_check.sh``` you will have restart your terminal ```exec zsh``` (or equivalent)
+<samp>check [domain.tld] will first:
 
-# **Lookup a domains information**
-
-```check domain.tld``` will first:
-
-1) Look for 'status: NXDOMAIN' in the header information from the initial dig a return.
-2) Check if the Start of Authority (SOA) is *charm.norid.no* to determine if the domain is in QUARANTINE.
-
-**If the domain doesn't pass these checks the script will inform of such and stop running.**
-
-If the domain passes the first tests the script will continue to check for the following:
+<details>
+  <summary>Check for 'status: NXDOMAIN' in the header information</summary>
+this status indicates that the domain does not exist, the script will stop here.
+</details>
+<details>
+  <summary>Check if the domain is in QUARANTINE</summary>
+if the Start of Authority is charm.norid.no; a whois (domain.tld) will be performed. if the whois returns with anything but 'No match' the domain exists but is in quarantine.
+</details>
+<details>
+  <summary>If the domain passes these two checks it will try to source the following:</summary>
+the script tries hard, so sometimes it might look stuck, leave it be for just a little bit.
+</details>
 
 | ~       | ~         | ~                                                 |
 | :-------|:----------|:--------------------------------------------------|
@@ -50,14 +52,21 @@ If the domain passes the first tests the script will continue to check for the f
 
   ### Secondary functions
 
-  | Command         | What it does
-  | :---------------| :------------------------------------------------------------------------------------------------------|
-  | ```checkcert``` | can be used to display a bit more information about the SSL certificate.                               |
-  | ```checkssl```  | can be used to connect to the hostname using ```openssl``` protocol, displaying the certificate chain. |
+<pre lang="bash">checkcert</pre>
+
+Allows you to see more information about the SSL certificate, this function uses curl.
+
+<pre lang="bash">checkssl</pre>
+
+Allows you to see more the certificate chain and more information, this function uses openssl.
+
+<pre lang="bash">digx</pre>
+
+This just extracts the IP from the A record and looks up PTR, allows for no flags.
 
 ## **Output and sanitazion of information**
 
-There are a bunch of hidden checks that happen during the script - sometimes it might get stuck on a record lookup, that's because that record is being stored and used for another check later on etc. There's a bunch of stuff like that in the script - in cases where it 'loads' just leave it and it'll continue when it's done processing whatever logic it needs to.
+There are quite a few 'hidden' checks that happen during the script, it stores certain information in temporary files for use later. The logic is far from perfect, but for the most part in my own testing the output is sanitized OK. A lot of it in regards to reverse-dns lookups and registrar name conversions.
 
 ### **Dependencies**
 
