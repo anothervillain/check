@@ -29,7 +29,7 @@ this status indicates that the domain does not exist, the script will stop here.
 </details>
 <details>
   <summary>Check if the domain is in QUARANTINE</summary>
-if the Start of Authority is charm.norid.no; a whois (domain.tld) will be performed. if the whois returns with anything but 'No match' the domain exists but is in quarantine.
+if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the script will whois the domain and look for "No match" - if that string isn't found the script will report the domain as in QUARANTINE.
 </details>
 
 - [x] **Passing both checks lets the script look for:**
