@@ -1,12 +1,12 @@
 ## **About this tool/script**
-<samp>Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.</samp>
+Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
 
 <kbd>
   <img src="https://github.com/zhk3r/check/assets/37957791/45595ed8-8460-4e7a-9a24-b6a66f0e067e">
 </kbd>
 
 ## **Installation and setup**
-| Copy-paste this!                                     | "But to where?" you ask!                      |
+| Copy-paste this!                                     | Where                                         |
 | :----------------------------------------------------|:----------------------------------------------|
 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
@@ -14,14 +14,14 @@
 | ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
 | ```exec zsh```                                       | Restart your terminal or shell                |
 
-###### If you're feeling epseically lazy you can copy paste this string: (assumes you use zsh+omz)
+> If you're feeling epseically lazy you can copy paste this string: (assumes you use zsh+omz)
 <pre lang="bash">
 sudo apt install lolcat && sudo apt install python3 && sudo apt install whois && git clone https://github.com/zhk3r/check.git && chmod +x ~/check/update_check.sh && echo 'export PATH="check:$PATH"' >> ~/.zshrc && exec zsh
 </pre>
 
 ## **Lookup relevant domain information**
 
-<samp>check [domain.tld] will first:
+```check domain.tld``` will first:
 
 <details>
   <summary>Check for 'status: NXDOMAIN' in the header information</summary>
@@ -36,7 +36,7 @@ if the Start of Authority is charm.norid.no; a whois (domain.tld) will be perfor
 the script tries hard, so sometimes it might look stuck, leave it be for just a little bit.
 </details>
 
-| ~       | ~         | ~                                                 |
+|         |           |                                                   |
 | :-------|:----------|:--------------------------------------------------|
 | RECORD  | A         | Looks up all A records.                           |
 | RECORD  | AAAA      | Looks up all AAAA records.                        |
@@ -50,7 +50,7 @@ the script tries hard, so sometimes it might look stuck, leave it be for just a 
 | WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
 | CURL    | SSL CERT  | Curls with and without insecure flag to check SSL |
 
-  ### Secondary functions
+## Secondary functions
 
 <pre lang="bash">checkcert</pre>
 
@@ -64,7 +64,7 @@ Allows you to see more the certificate chain and more information, this function
 
 This just extracts the IP from the A record and looks up PTR, allows for no flags.
 
-## **Output and sanitazion of information**
+### **Output and sanitazion of information**
 
 There are quite a few 'hidden' checks that happen during the script, it stores certain information in temporary files for use later. The logic is far from perfect, but for the most part in my own testing the output is sanitized OK. A lot of it in regards to reverse-dns lookups and registrar name conversions.
 
@@ -80,5 +80,7 @@ In order for the script to run you will need the following:
 | openssl | ```sudo apt install openssl``` | Used to test SSL connectivity            |
 | curl    | ```sudo apt install curl```    | Used to test SSL connectivity            |
 | lolcat  | ```sudo apt install lolcat```  | Used to color some output                |
+
+<br>
 
 > You probably have most of these already, you could remove lolcat from line 111 if you so desire.
