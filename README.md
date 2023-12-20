@@ -81,4 +81,4 @@ In order for the script to run you will need the following:
 | curl    | ```sudo apt install curl```    | Used to test SSL connectivity            |
 | lolcat  | ```sudo apt install lolcat```  | Used to color some output                |
 
-> You probably have most of these already, you could remove lolcat from line 76 if you so desire.
+> You probably have most of these already, you could remove lolcat from line 111 if you so desire.
