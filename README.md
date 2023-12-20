@@ -31,22 +31,20 @@ this status indicates that the domain does not exist, the script will stop here.
   <summary>Check if the domain is in QUARANTINE</summary>
 if the Start of Authority is charm.norid.no; a whois (domain.tld) will be performed. if the whois returns with anything but 'No match' the domain exists but is in quarantine.
 </details>
-<details>
-  <summary>If the domain passes these two checks it will try to source the following:</summary>
-the script tries hard, so sometimes it might look stuck, leave it be for just a little bit.
-</details>
+
+- [x] **Passing the checks the script looks for:**
 
 | What    | Content   |  Explanation                                      |
 | :-------|:----------|:--------------------------------------------------|
-| RECORD  | A         | Looks up all A records.                           |
-| RECORD  | AAAA      | Looks up all AAAA records.                        |
-| FORWARD | HTTP      | HTTP-STATUS (301, 307, etc) forwarding            |
+| RECORD  | A         | A records - IPv4 addresses.                       |
+| RECORD  | AAAA      | AAAA records - IPv6 addresses.                    |
+| FORWARD | HTTP      | HTTP-STATUS (301, 302, 307...) forwarding         |
 | FORWARD | REDIR     | DNS redir TXT based fowarding                     |
 | FORWARD | PARKED    | TXT containing ```parked```                       |
 | RECORD  | MX        | MX records                                        |
 | RECORD  | SPF       | Looks for SPF in ```TXT``` and ```SPF``` records  |
 | RECORD  | NS        | Nameservers                                       |
-| RECORD  | PTR       | Reverse-dns lookup of A & AAAA IP's               |
+| RECORD  | PTR       | Reverse DNS lookup of the domains A and AAAA IP's |
 | WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
 | CURL    | SSL CERT  | Curls with and without insecure flag to check SSL |
 
