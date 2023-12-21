@@ -1,4 +1,4 @@
-# **check**, a shell function
+# **check.sh**
 Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and SSL data in your terminal.
 
 <kbd>
