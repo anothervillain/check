@@ -6,10 +6,12 @@ Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and 
 </kbd>
 
 ## **Installation and setup**
+> Fastest way to install, copy and run the following command:
+
 <pre lang="bash">
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install.sh)"
 </pre>
-> If you like doing this manually:
+> If you like doing stuff manually you have to:
 
 | Copy-paste this                                      | Where                                                 |
 | :----------------------------------------------------|:------------------------------------------------------|
@@ -18,11 +20,6 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install
 | ```git clone https://github.com/zhk3r/check.git```   | Into your terminal                                    |
 | ```chmod +x rdns.py update_check.sh```               | Into your terminal, makes the scripts run.            |
 | ```exec zsh```                                       | Restart your terminal/shell                           |
-
-> If you're feeling especially lazy you can copy paste this string to install all of it:
-<pre lang="bash">
-sudo apt-get update && sudo apt-get install -y whois curl openssl lolcat zsh && sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install.sh)" && exec zsh && exec bash -l
-</pre>
 
 ## **Lookup relevant domain information**
 
