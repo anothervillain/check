@@ -15,19 +15,19 @@ cd "$INSTALL_DIR"
 # Set execute permissions on rdns.py and update_check.sh
 chmod +x rdns.py update_check.sh
 
-# Temporarily store current .zshrc content
+# Update .zshrc with specific configurations
+ZSHRC_FILE="$HOME/.zshrc"
 TEMP_ZSHRC=$(mktemp)
-cat $HOME/.zshrc > $TEMP_ZSHRC
+cat $ZSHRC_FILE > $TEMP_ZSHRC
 
-# Prepend export and source paths to the top of .zshrc
-{
-    echo "export PATH=\$PATH:$INSTALL_DIR"
-    echo "source $INSTALL_DIR/check_function.zsh"
-    cat $TEMP_ZSHRC
-} > $HOME/.zshrc
+# Add the new line beneath 'source $ZSH/oh-my-zsh.sh'
+sed -i "/source \$ZSH\/oh-my-zsh.sh/a source $INSTALL_DIR/check_function.zsh" $TEMP_ZSHRC
 
-# Remove temporary file
-rm $TEMP_ZSHRC
+# Add the new line beneath 'export ZSH="$HOME/.oh-my-zsh"'
+sed -i "/export ZSH=\"\$HOME\/.oh-my-zsh\"/a export PATH=\"check:\$PATH\"" $TEMP_ZSHRC
+
+# Update the original .zshrc file
+mv $TEMP_ZSHRC $ZSHRC_FILE
 
 # Refresh .zshrc to apply changes
-source $HOME/.zshrc
+source $ZSHRC_FILE
