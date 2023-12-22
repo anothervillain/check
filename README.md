@@ -9,6 +9,8 @@ Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and 
 <pre lang="bash">
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install.sh)"
 </pre>
+> If you like doing this manually:
+
 | Copy-paste this                                      | Where                                                 |
 | :----------------------------------------------------|:------------------------------------------------------|
 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.                     |
@@ -17,9 +19,9 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install
 | ```chmod +x rdns.py update_check.sh```               | Into your terminal, makes the scripts run.            |
 | ```exec zsh```                                       | Restart your terminal/shell                           |
 
-> If you're feeling especially lazy you can copy paste this string: (assumes you use zsh+omz)
+> If you're feeling especially lazy you can copy paste this string to install all of it:
 <pre lang="bash">
-sudo apt install lolcat && sudo apt install python3 && sudo apt install whois && git clone https://github.com/zhk3r/check.git && chmod +x ~/check/update_check.sh && echo 'export PATH="check:$PATH"' >> ~/.zshrc && exec zsh
+sudo apt-get update && sudo apt-get install -y whois curl openssl lolcat zsh && sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install.sh)" && exec zsh && exec bash -l
 </pre>
 
 ## **Lookup relevant domain information**
