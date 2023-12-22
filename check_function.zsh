@@ -72,7 +72,7 @@ check_ssl_certificate() {
 }
 
 # Reverse DNS Lookup
-PYTHON_SCRIPT_PATH="~/check/rdns.py"
+PYTHON_SCRIPT_PATH="~/rdns.py"
 # Function to execute the Python script with the provided domain
 rdns() {
   echo "Executing reverse DNS lookup..."
