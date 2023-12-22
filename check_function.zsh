@@ -71,6 +71,27 @@ check_ssl_certificate() {
     fi
 }
 
+# Reverse DNS Lookup
+PYTHON_SCRIPT_PATH="~/check/rdns.py"
+# Function to execute the Python script with the provided domain
+rdns() {
+  echo "Executing reverse DNS lookup..."
+
+  # Check if the script file exists
+  if [ ! -f "$PYTHON_SCRIPT_PATH" ]; then
+    echo "Error: rdns.py not found at the specified path."
+    return 1
+  fi
+
+  if [ -z "$1" ]; then
+    echo "Usage: rdns <domain.tld>"
+    return 1
+  fi
+
+  # Execute the Python script with the provided argument
+  python3 "$PYTHON_SCRIPT_PATH" "$@"
+}
+
 # Function to execute a command with a timeout ## INACTIVE
 execute_with_timeout() {
     local duration=$1
@@ -96,17 +117,7 @@ execute_with_interrupt() {
     wait $cmd_pid 2> /dev/null
 }
 
-# Function reverse-dns-lookup a domain
-digx() {
-  if [ -z "$1" ]; then
-    echo "Usage: digx <domain.tld> for reverse-dns lookup, printing server information"
-    return 1
-  fi
-
-  dig -x $(dig a "$1" +short | head -1)
-}
-
-# THIS IS THE START OF THE ACTUAL FUNCTION
+# THE FUNCTION STARTS HERE! :)
 check() {
     echo "Checking for information on $1:" | lolcat
 spinner=( '/' '-' '\' '|' )
@@ -280,6 +291,35 @@ esac
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
     check_ssl_certificate "$1"
+}
+
+# CLEANUP THE RESULTS AND AVOID CACHING
+move_and_cleanup_files() {
+    # Directory where files are currently stored
+    local source_dir="$HOME"
+
+    # Directory where files should be moved
+    local dest_dir="$HOME/check/temp-results"
+
+    # Create the destination directory if it doesn't exist
+    mkdir -p "$dest_dir"
+
+    # Move the specified files to the destination directory
+    mv "$source_dir/a_results.txt" \
+       "$source_dir/a_results.json" \
+       "$source_dir/aaaa_results.txt" \
+       "$source_dir/aaaa_results.jon" \
+       "$dest_dir/"
+
+    # Move the current_domain.txt file for cleanup
+    mv "$source_dir/current_domain.txt" "$dest_dir/"
+
+    # Delete all the files from the destination after their use
+    rm "$dest_dir/a_results.txt" \
+       "$dest_dir/a_results.json" \
+       "$dest_dir/aaaa_results.txt" \
+       "$dest_dir/aaaa_results.jon" \
+       "$dest_dir/current_domain.txt"
 }
 
 # ADD-ON FUNCTIONALITY
