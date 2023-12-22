@@ -6,12 +6,15 @@ Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and 
 </kbd>
 
 ## **Installation and setup**
+<pre lang="bash">
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install.sh)"
+</pre>
 | Copy-paste this                                      | Where                                                 |
 | :----------------------------------------------------|:------------------------------------------------------|
 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.                     |
 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.                     |
 | ```git clone https://github.com/zhk3r/check.git```   | Into your terminal                                    |
-| ```chmod +x ~/check/update_check.sh```               | Into your terminal, this makes the update script run. |
+| ```chmod +x rdns.py update_check.sh```               | Into your terminal, makes the scripts run.            |
 | ```exec zsh```                                       | Restart your terminal/shell                           |
 
 > If you're feeling especially lazy you can copy paste this string: (assumes you use zsh+omz)
