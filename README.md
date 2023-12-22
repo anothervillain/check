@@ -1,73 +1,93 @@
-## **About this tool/script**
-Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
+# **check.sh**
+Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and SSL data in your terminal.
 
 <kbd>
   <img src="https://github.com/zhk3r/check/assets/37957791/45595ed8-8460-4e7a-9a24-b6a66f0e067e">
 </kbd>
 
 ## **Installation and setup**
-| Copy-paste this!                                     | "But to where?" you ask!                      |
-| :----------------------------------------------------|:----------------------------------------------|
-| ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
-| ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
-| ```git clone https://github.com/zhk3r/check.git```   | to clone this repo.                           |
-| ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
-| ```source .zshrc``` or ```exec zsh```                | or equivalent shell *(restart terminal)*      |
+| Copy-paste this                                      | Where                                                 |
+| :----------------------------------------------------|:------------------------------------------------------|
+| ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.                     |
+| ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.                     |
+| ```git clone https://github.com/zhk3r/check.git```   | Into your terminal                                    |
+| ```chmod +x ~/check/update_check.sh```               | Into your terminal, this makes the update script run. |
+| ```exec zsh```                                       | Restart your terminal/shell                           |
 
-You should be good to check out some domains now! :)
+> If you're feeling especially lazy you can copy paste this string: (assumes you use zsh+omz)
+<pre lang="bash">
+sudo apt install lolcat && sudo apt install python3 && sudo apt install whois && git clone https://github.com/zhk3r/check.git && chmod +x ~/check/update_check.sh && echo 'export PATH="check:$PATH"' >> ~/.zshrc && exec zsh
+</pre>
 
-#### Updating the script
-After updating the script ```update_check.sh``` you will have restart your terminal ```exec zsh``` (or equivalent)
-
-# **Lookup a domains information**
+## **Lookup relevant domain information**
 
 ```check domain.tld``` will first:
 
-1) Look for 'status: NXDOMAIN' in the header information from the initial dig a return.
-2) Check if the Start of Authority (SOA) is *charm.norid.no* to determine if the domain is in QUARANTINE.
+<details>
+  <summary>Check for 'status: NXDOMAIN' in the header information</summary>
+this status indicates that the domain does not exist, the script will stop here.
+</details>
+<details>
+  <summary>Check if the domain is in QUARANTINE</summary>
+if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the script will whois the domain and look for "No match" - if that string isn't found the script will report the domain as in QUARANTINE.
+</details>
 
-**If the domain doesn't pass these checks the script will inform of such and stop running.**
+- [x] **Passing both checks lets the script look for:**
 
-If the domain passes the first tests the script will continue to check for the following:
-
-| ~       | ~         | ~                                                 |
+| What    | Content   |  Explanation                                      |
 | :-------|:----------|:--------------------------------------------------|
-| RECORD  | A         | Looks up all A records.                           |
-| RECORD  | AAAA      | Looks up all AAAA records.                        |
-| FORWARD | HTTP      | HTTP-STATUS (301, 307, etc) forwarding            |
-| FORWARD | REDIR     | TXT ```_redir``` forwarding                       |
+| RECORD  | A         | A records - IPv4 addresses.                       |
+| RECORD  | AAAA      | AAAA records - IPv6 addresses.                    |
+| FORWARD | HTTP      | HTTP-STATUS (301, 302, 307...) forwarding         |
+| FORWARD | REDIR     | DNS redir TXT based fowarding                     |
 | FORWARD | PARKED    | TXT containing ```parked```                       |
 | RECORD  | MX        | MX records                                        |
-| RECORD  | SPF       | Looks for SPF in ```TXT``` and ```SPF``` records  |
+| RECORD  | SPF       | ```v=spf``` in TXT and SPF type records.          |
 | RECORD  | NS        | Nameservers                                       |
-| REVERSE | DNS       | Performs a reverse-dns lookup on both A & AAAA    |
+| RECORD  | PTR       | Reverse DNS lookup of the A & AAAA records        |
 | WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
-| CURL    | SSL CERT  | Curls with and without insecure flag to check SSL |
+| CURL    | SSL CERT  | With and without insecure flag to check SSL       |
 
-  ### Secondary functions
+## Secondary functions
 
-  | Command         | What it does
-  | :---------------| :------------------------------------------------------------------------------------------------------|
-  | ```checkcert``` | can be used to display a bit more information about the SSL certificate.                               |
-  | ```checkssl```  | can be used to connect to the hostname using ```openssl``` protocol, displaying the certificate chain. |
+These are supporting functions to the main script that are mostly used for troubleshooting SSL, one using ```openssl``` and the other using ```curl```. The one that uses curl sanitizes a lot of the output, so it gives you the option to retry the connection without any alterations to the output. Lastly the ```digx``` function looks up the primary A records PTR record, fast and dirty reverse DNS lookup.
 
-## **Output and sanitazion of information**
+<pre lang="bash">checkcert</pre>
 
-There are a bunch of hidden checks that happen during the script - sometimes it might get stuck on a record lookup, that's because that record is being stored and used for another check later on etc. There's a bunch of stuff like that in the script - in cases where it 'loads' just leave it and it'll continue when it's done processing whatever logic it needs to.
+Add-on function that retrieves and displays TLS certificate details for the specified domain using curl. If the initial attempt fails, it retries without alterations to the output formatting and color-codes (asks the user to retry [Y/n])
+
+<pre lang="bash">checkssl</pre>
+
+Add-on function that uses the openssl s_client command to connect to the specified domain over SSL/TLS on port 443 and displays the entire SSL/TLS certificate chain. Can be useful when you need that information for troubleshooting.
+
+<pre lang="bash">digx</pre>
+
+Just a glorified alias for doing a reverse-dns-lookup of the primary A record, doesn't allow for flags or anything (yet). I plan to add onto this function.
+
+### **Output and sanitazion of information**
+
+There are quite a few 'hidden' checks that happen during the script, it stores certain information in temporary files for use later. The logic is far from perfect, but for the most part in my own testing the output is sanitized OK. A lot of it in regards to reverse-dns lookups and registrar name conversions.
 
 ### **Dependencies**
 
-In order for the script to run you will need the following:
+> In order for the script to run you will need the following:
 
-> **python** ```sudo apt install python3```
+| Name    | Command                        | Why
+| :-------| :------------------------------| :----------------------------------------|
+| python3 | ```sudo apt install python3``` | Used for reverse dns lookup logic        |
+| dig     | ```sudo apt install dig```     | Used for most dns commands               |
+| whois   | ```sudo apt install whois```   | Used to lookup registrar information     |
+| openssl | ```sudo apt install openssl``` | Used to test SSL connectivity            |
+| curl    | ```sudo apt install curl```    | Used to test SSL connectivity            |
+| lolcat  | ```sudo apt install lolcat```  | Used to color some output                |
 
-> **dig** ```sudo apt install dig```
+> You probably have most of these already, you could remove lolcat from line 111 if you so desire.
 
-> **whois** ```sudo apt install whois```
+#### Contribution
+My coworkers for input on the logic, filtering and output of the script <3
 
-> **openssl** ```sudo apt install openssl```
+#### License
+This project is licensed under Apache 2.0.
 
-> **curl** ```sudo apt install curl```
-
-> **lolcat** ```sudo apt install lolcat```
-
+#### Contact
+For questions or contributions, contact me wherever you can find me :)
