@@ -71,8 +71,8 @@ check_ssl_certificate() {
     fi
 }
 
-# Reverse DNS Lookup
-PYTHON_SCRIPT_PATH="~/rdns.py"
+# Reverse DNS Lookup using FQDN name, able to check all IPs.
+PYTHON_SCRIPT_PATH="/home/$USER/check/rdns.py"
 # Function to execute the Python script with the provided domain
 rdns() {
   echo "Executing reverse DNS lookup..."
