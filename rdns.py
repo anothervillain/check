@@ -16,7 +16,7 @@ CYAN = colorama.Fore.CYAN
 RESET = colorama.Style.RESET_ALL
 
 # Function to perform reverse DNS lookup using dig
-def dig_reverse_dns_lookup(ip_address):
+def dig_reverse_dns_lookup(ip_address, record_type):
     if not ip_address:
         return "NONE", ""
     try:
@@ -24,19 +24,18 @@ def dig_reverse_dns_lookup(ip_address):
         result = subprocess.check_output(["dig", "-x", ip_address, "+noall", "+answer", "+authority"], text=True).strip()
         # Parse PTR records from the result
         ptr_records = [line.split('PTR')[-1].strip() for line in result.splitlines() if "PTR" in line]
+        # Parse SOA records if PTR records are not found
+        soa_record = next((line for line in result.splitlines() if "SOA" in line), None)
         if ptr_records:
-            # Return PTR record with colored record type
-            return f"{GREEN}PTR{RESET}", ptr_records[0]
-        else:
-            # Parse SOA records if PTR records are not found
-            soa_record = next((line for line in result.splitlines() if "SOA" in line), None)
-            if soa_record:
-                soa_content = soa_record.split("SOA")[-1].strip()
-                last_period_index = soa_content.rfind('.')
-                soa_content_truncated = soa_content[:last_period_index + 1] if last_period_index != -1 else soa_content
-                # Return SOA record with colored record type
-                return f"{RED}SOA{RESET}", soa_content_truncated
-            return "NONE", f"No PTR or SOA record found for {ip_address}"
+            # Return PTR record with colored record type and IP version
+            return f"{GREEN}PTR{RESET} {YELLOW}({record_type}){RESET}", ptr_records[0]
+        elif soa_record:
+            soa_content = soa_record.split("SOA")[-1].strip()
+            last_period_index = soa_content.rfind('.')
+            soa_content_truncated = soa_content[:last_period_index + 1] if last_period_index != -1 else soa_content
+            # Return SOA record with colored record type and IP version
+            return f"{RED}SOA{RESET} {YELLOW}({record_type}){RESET}", soa_content_truncated
+        return "NONE", f"No PTR or SOA record found for {ip_address}"
     except subprocess.CalledProcessError as e:
         return "ERROR", f"Lookup failed for {ip_address}: {e}"
 
@@ -63,14 +62,15 @@ def reverse_dns_lookup(domain):
         # Store results for tabulated output
         lookup_results = []
 
-        for ip in a_records + aaaa_records:
-            if ip:
-                record_type_colored, result = dig_reverse_dns_lookup(ip)
-                # Append results with colored record type
-                lookup_results.append((record_type_colored, f"{CYAN}{ip}{RESET}", f"{GREEN}{result}{RESET}"))
+        for record_type, ip_list in (('A', a_records), ('AAAA', aaaa_records)):
+            for ip in ip_list:
+                if ip:
+                    record_type_result, result = dig_reverse_dns_lookup(ip, record_type)
+                    # Append results with record type and IP version
+                    lookup_results.append((record_type_result, f"{CYAN}{ip}{RESET}", f"{GREEN}{result}{RESET}"))
 
-        # Output the results in a tabulated format with capitalized headers
-        headers = [f"{YELLOW}RECORD{RESET}", f"{YELLOW}IP ADDRESS{RESET}", f"{YELLOW}RESULT (CHECK TYPE){RESET}"]
+        # Output the results in a tabulated format
+        headers = [f"{YELLOW}RECORD{RESET}", f"{YELLOW}IP ADDRESS{RESET}", f"{YELLOW}RESULT{RESET}"]
         # Stop the loading animation
         animation_thread.join()
         print('\r' + ' ' * 40)  # Clear the loading animation line
@@ -84,10 +84,20 @@ def reverse_dns_lookup(domain):
         print('\r' + ' ' * 40)  # Clear the loading animation line
         print(f"{RED}Error executing dig command: {e}{RESET}")
 
+# Function to print help information about PTR and SOA records
+def print_help_info():
+    print(f"{YELLOW}Usage:{RESET} {GREEN}rdns <domain.tld>{RESET} to reverse DNS lookup all A & AAAA records.")
+    print(f"{YELLOW}Why is this information relevant?{RESET}")
+    print(f"{GREEN}PTR{RESET} will tell you what server the IP's respond to. {CYAN}This is the host!{RESET}")
+    print(f"{RED}SOA{RESET} will tell you the Start of Authority for the domain, but not necessarily the host.")
+
 # Main execution point
 if __name__ == "__main__":
     # Command line argument handling
     if len(sys.argv) < 2:
         print(f"{YELLOW}Usage: python rdns.py <DOMAIN.TLD>{RESET}")
+        print(f"{YELLOW}For more information, type: python rdns.py -help{RESET}")
+    elif sys.argv[1] in ['-h', '--help', '-help']:
+        print_help_info()  # Call the function to print help information
     else:
         reverse_dns_lookup(sys.argv[1].upper())
