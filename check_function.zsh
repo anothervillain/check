@@ -75,8 +75,6 @@ check_ssl_certificate() {
 PYTHON_SCRIPT_PATH="/home/$USER/check/rdns.py"
 # Function to execute the Python script with the provided domain
 rdns() {
-  echo "Executing reverse DNS lookup..."
-
   # Check if the script file exists
   if [ ! -f "$PYTHON_SCRIPT_PATH" ]; then
     echo "Error: rdns.py not found at the specified path."
