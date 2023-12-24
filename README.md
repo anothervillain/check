@@ -16,6 +16,7 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install
 | Copy-paste this                                      | Where                                                 |
 | :----------------------------------------------------|:------------------------------------------------------|
 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.                     |
+| ```exprt PATH=\"\$PATH:$pip3_path\"```               | Add to your .zshrc or equvialent.                     |
 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.                     |
 | ```git clone https://github.com/zhk3r/check.git```   | Into your terminal                                    |
 | ```chmod +x rdns.py update_check.sh```               | Into your terminal, makes the scripts run.            |
@@ -62,9 +63,9 @@ Add-on function that retrieves and displays TLS certificate details for the spec
 
 Add-on function that uses the openssl s_client command to connect to the specified domain over SSL/TLS on port 443 and displays the entire SSL/TLS certificate chain. Can be useful when you need that information for troubleshooting.
 
-<pre lang="bash">digx</pre>
+<pre lang="bash">rdns</pre>
 
-Just a glorified alias for doing a reverse-dns-lookup of the primary A record, doesn't allow for flags or anything (yet). I plan to add onto this function.
+Add-on function that looks up the PTR information for all IPv4 and IPv6 records on the given domain, with info whether it's a PTR or SOA record. 
 
 ### **Output and sanitazion of information**
 
@@ -77,6 +78,9 @@ There are quite a few 'hidden' checks that happen during the script, it stores c
 | Name    | Command                        | Why
 | :-------| :------------------------------| :----------------------------------------|
 | python3 | ```sudo apt install python3``` | Used for reverse dns lookup logic        |
+| pip3    | ```install pip3```             | Used for (add-on) rdns lookup logic      |
+| pip3    | ```pip3 install tabulate```    | Used to put rdns info into a table       |
+| pip3    | ```pip3 install colorama```    | Used to color rdns lookups.              |
 | dig     | ```sudo apt install dig```     | Used for most dns commands               |
 | whois   | ```sudo apt install whois```   | Used to lookup registrar information     |
 | openssl | ```sudo apt install openssl``` | Used to test SSL connectivity            |
