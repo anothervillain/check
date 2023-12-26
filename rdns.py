@@ -101,7 +101,7 @@ def reverse_dns_lookup(domain):
 def print_help_info():
     help_info = [
         (f"{CYAN}INFO{RESET}", "Reverse DNS Lookup lets you see the server your domains IP connects to"),
-        (f"{GREEN}PTR{RESET}", "Indicates which server the individual IP (A/AAAA record) respond to."),
+        (f"{GREEN}PTR{RESET}", "Indicates which server the individual IP (A/AAAA record) connects to."),
         (f"{RED}SOA{RESET}", "Shows the Start of Authority for the domain, but not necessarily the host.")
     ]
     print(f"{YELLOW}Usage:{RESET} {GREEN}rdns <domain.tld>{RESET}")
