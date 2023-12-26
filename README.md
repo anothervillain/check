@@ -82,7 +82,7 @@ There are quite a few 'hidden' checks that happen during the script, it stores c
 | Name    | Command                        | Why
 | :-------| :------------------------------| :----------------------------------------|
 | python3 | ```sudo apt install python3``` | Used for reverse dns lookup logic        |
-| pip3    | ```suo install python-pip3```    Used for (add-on) rdns lookup logic      |
+| pip3    | ```suo install python-pip3```  | Used for (add-on) rdns lookup logic      |
 | pip3    | ```pip3 install tabulate```    | Used to put rdns info into a table       |
 | pip3    | ```pip3 install colorama```    | Used to color rdns lookups.              |
 | dig     | ```sudo apt install dig```     | Used for most dns commands               |
