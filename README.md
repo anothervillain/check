@@ -91,7 +91,7 @@ There are quite a few 'hidden' checks that happen during the script, it stores c
 | curl    | ```sudo apt install curl```    | Used to test SSL connectivity            |
 | lolcat  | ```sudo apt install lolcat```  | Used to color some output                |
 
-> You probably have most of these already, you could remove lolcat from line 111 if you so desire.
+> You probably have most of these already, you could remove lolcat from line 120 if you so desire.
 
 #### Contribution
 My coworkers for input on the logic, filtering and output of the script <3
