@@ -26,26 +26,42 @@ def dig_reverse_dns_lookup(ip_address, record_type):
         # Parse SOA records if PTR records are not found
         soa_record = next((line for line in result.splitlines() if "SOA" in line), None)
         if ptr_records:
-            # Return PTR record with colored record type and IP address type (A or AAAA)
-            return f"{GREEN}PTR{RESET} {YELLOW}(A){RESET}" if record_type == "IPv4" else f"{GREEN}PTR{RESET} {YELLOW}(AAAA){RESET}", ptr_records[0]
+            # Return PTR record with colored record type
+            return f"{GREEN}PTR{RESET} {YELLOW}({record_type}){RESET}", ptr_records[0]
         elif soa_record:
             soa_content = soa_record.split("SOA")[-1].strip()
             last_period_index = soa_content.rfind('.')
             soa_content_truncated = soa_content[:last_period_index + 1] if last_period_index != -1 else soa_content
-            # Return SOA record with colored record type and IP address type (A or AAAA)
-            return f"{RED}SOA{RESET} {YELLOW}(A){RESET}" if record_type == "IPv4" else f"{RED}SOA{RESET} {YELLOW}(AAAA){RESET}", soa_content_truncated
+            # Return SOA record with colored record type
+            return f"{RED}SOA{RESET} {YELLOW}({record_type}){RESET}", soa_content_truncated
         return "NONE", f"No PTR or SOA record found for {ip_address}"
     except subprocess.CalledProcessError as e:
         return "ERROR", f"Lookup failed for {ip_address}: {e}"
 
 # Function to validate the domain using WHOIS
 def is_valid_domain(domain):
+    # Adjust the domain validation to support subdomains
+    domain_parts = domain.split('.')
+    if len(domain_parts) < 2:
+        return False
+    # Consider the last two parts of the domain for validation
+    main_domain = '.'.join(domain_parts[-2:])
     try:
         # Execute whois command to check domain validity
-        subprocess.check_output(["whois", domain], text=True)
+        whois_output = subprocess.check_output(["whois", main_domain], text=True, stderr=subprocess.STDOUT)
+        # Check for specific strings in the whois output that indicate a valid domain
+        if "No match for domain" in whois_output or "No entries found" in whois_output:
+            return False
         return True
     except subprocess.CalledProcessError:
         return False
+
+# Function to check if the input is a subdomain
+def is_subdomain(domain):
+    """
+    Check if the given domain is a subdomain.
+    """
+    return len(domain.split('.')) > 2
 
 # Function to perform reverse DNS lookup with domain validation
 def reverse_dns_lookup(domain):
@@ -60,21 +76,22 @@ def reverse_dns_lookup(domain):
         aaaa_records_output = subprocess.check_output(["dig", domain, "+short", "AAAA"], text=True).strip()
 
         # Split the output into a list of IP addresses
-        ip_list = a_records_output.splitlines() + aaaa_records_output.splitlines()
+        ip_list = list(set(a_records_output.splitlines() + aaaa_records_output.splitlines())) # Remove duplicates
         lookup_results = []
 
-        for record_type in ["IPv4", "IPv6"]:
-            for ip in ip_list:
-                if ip:
-                    record_type_label = "A" if record_type == "IPv4" else "AAAA"
-                    record_type_result, result = dig_reverse_dns_lookup(ip, record_type)
-                    # Append results with record type (A or AAAA)
-                    lookup_results.append((record_type_result.replace(record_type, record_type_label), f"{CYAN}{ip}{RESET}", f"{GREEN}{result}{RESET}"))
+        for ip in ip_list:
+            record_type = "A" if ':' not in ip else "AAAA"
+            record_type_result, result = dig_reverse_dns_lookup(ip, record_type)
+            # Append results
+            lookup_results.append((record_type_result, f"{CYAN}{ip}{RESET}", f"{GREEN}{result}{RESET}"))
 
         # Output the results in a tabulated format
         headers = [f"{YELLOW}RECORD{RESET}", f"{YELLOW}IP ADDRESS{RESET}", f"{YELLOW}RESULT{RESET}"]
+
+        # Determine header based on whether domain is a subdomain
+        header_domain = f"{CYAN}{domain.upper()}{RESET}" if is_subdomain(domain) else f"{CYAN}{domain.upper()}{RESET}"
         # Print header for reverse DNS lookup process
-        print(f"{YELLOW}REVERSE DNS LOOKUP FOR {domain}:{RESET}")
+        print(f"{YELLOW}REVERSE DNS LOOKUP FOR {header_domain}:{RESET}")
         print(tabulate(lookup_results, headers=headers, tablefmt='grid'))
 
     except subprocess.CalledProcessError as e:
@@ -96,9 +113,10 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(f"{RED}Please provide a domain.{RESET}")
         print_help_info()  # Call the function to print help information
-    elif sys.argv[1] in ['-h', '--help', '-help']:
-        print_help_info()  # Inputted domain is not legit
-    elif not is_valid_domain(sys.argv[1]):
-        print(f"{RED}That doesn't look like a properly formatted domain or it does not exist.{RESET}")
     else:
-        reverse_dns_lookup(sys.argv[1].lower())
+        if sys.argv[1] in ['-h', '--help', '-help']:
+            print_help_info()  # Inputted domain is not legit
+        elif not is_valid_domain(sys.argv[1]):
+            print(f"{RED}That doesn't look like a properly formatted domain or it does not exist.{RESET}")
+        else:
+            reverse_dns_lookup(sys.argv[1].lower())
