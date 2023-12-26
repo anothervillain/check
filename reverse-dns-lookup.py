@@ -62,7 +62,7 @@ def print_relevant_answers(ip_addresses, record_type, domain):
         print(f"{RED}No PTR found. SOA for {domain} is{RESET}")
         for record in soa_records:
             print(record)
-        print(f"{CYAN}Tip: You can try using the this command: {RESET}{YELLOW}digx {domain}{RESET}")
+        print(f"{CYAN}Tip: You can try using the this command: {RESET}{YELLOW}rdns {domain}{RESET}")
         soa_message_printed = True
 
 # Load domain from the file created by the .zsh script
