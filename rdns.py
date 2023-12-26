@@ -2,8 +2,7 @@ import subprocess
 import sys
 from tabulate import tabulate
 import colorama
-import threading
-import time
+import re
 
 # Initialize colorama for colored terminal text
 colorama.init(autoreset=True)
@@ -27,77 +26,79 @@ def dig_reverse_dns_lookup(ip_address, record_type):
         # Parse SOA records if PTR records are not found
         soa_record = next((line for line in result.splitlines() if "SOA" in line), None)
         if ptr_records:
-            # Return PTR record with colored record type and IP version
-            return f"{GREEN}PTR{RESET} {YELLOW}({record_type}){RESET}", ptr_records[0]
+            # Return PTR record with colored record type and IP address type (A or AAAA)
+            return f"{GREEN}PTR{RESET} {YELLOW}(A){RESET}" if record_type == "IPv4" else f"{GREEN}PTR{RESET} {YELLOW}(AAAA){RESET}", ptr_records[0]
         elif soa_record:
             soa_content = soa_record.split("SOA")[-1].strip()
             last_period_index = soa_content.rfind('.')
             soa_content_truncated = soa_content[:last_period_index + 1] if last_period_index != -1 else soa_content
-            # Return SOA record with colored record type and IP version
-            return f"{RED}SOA{RESET} {YELLOW}({record_type}){RESET}", soa_content_truncated
+            # Return SOA record with colored record type and IP address type (A or AAAA)
+            return f"{RED}SOA{RESET} {YELLOW}(A){RESET}" if record_type == "IPv4" else f"{RED}SOA{RESET} {YELLOW}(AAAA){RESET}", soa_content_truncated
         return "NONE", f"No PTR or SOA record found for {ip_address}"
     except subprocess.CalledProcessError as e:
         return "ERROR", f"Lookup failed for {ip_address}: {e}"
 
-# Function to display a loading animation
-def loading_animation():
-    animation = "|/-\\"
-    for _ in range(10):
-        for frame in animation:
-            sys.stdout.write('\r' + YELLOW + 'Loading results...' + frame + RESET)
-            sys.stdout.flush()
-            time.sleep(0.1)
-
-# Function to perform reverse DNS lookup with loading animation
-def reverse_dns_lookup(domain):
-    # Start loading animation in a separate thread
-    animation_thread = threading.Thread(target=loading_animation)
-    animation_thread.start()
-
-    # Execute dig command to find A and AAAA records
+# Function to validate the domain using WHOIS
+def is_valid_domain(domain):
     try:
-        a_records = subprocess.check_output(["dig", domain, "A", "+short"], text=True).strip().split('\n')
-        aaaa_records = subprocess.check_output(["dig", domain, "AAAA", "+short"], text=True).strip().split('\n')
+        # Execute whois command to check domain validity
+        subprocess.check_output(["whois", domain], text=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
-        # Store results for tabulated output
+# Function to perform reverse DNS lookup with domain validation
+def reverse_dns_lookup(domain):
+    # Validate the domain format
+    if not is_valid_domain(domain):
+        print(f"{RED}The domain is not valid or does not exist.{RESET}")
+        return
+
+    try:
+        # Obtain A and AAAA records for the domain
+        a_records_output = subprocess.check_output(["dig", domain, "+short", "A"], text=True).strip()
+        aaaa_records_output = subprocess.check_output(["dig", domain, "+short", "AAAA"], text=True).strip()
+
+        # Split the output into a list of IP addresses
+        ip_list = a_records_output.splitlines() + aaaa_records_output.splitlines()
         lookup_results = []
 
-        for record_type, ip_list in (('A', a_records), ('AAAA', aaaa_records)):
+        for record_type in ["IPv4", "IPv6"]:
             for ip in ip_list:
                 if ip:
+                    record_type_label = "A" if record_type == "IPv4" else "AAAA"
                     record_type_result, result = dig_reverse_dns_lookup(ip, record_type)
-                    # Append results with record type and IP version
-                    lookup_results.append((record_type_result, f"{CYAN}{ip}{RESET}", f"{GREEN}{result}{RESET}"))
+                    # Append results with record type (A or AAAA)
+                    lookup_results.append((record_type_result.replace(record_type, record_type_label), f"{CYAN}{ip}{RESET}", f"{GREEN}{result}{RESET}"))
 
         # Output the results in a tabulated format
         headers = [f"{YELLOW}RECORD{RESET}", f"{YELLOW}IP ADDRESS{RESET}", f"{YELLOW}RESULT{RESET}"]
-        # Stop the loading animation
-        animation_thread.join()
-        print('\r' + ' ' * 40)  # Clear the loading animation line
         # Print header for reverse DNS lookup process
         print(f"{YELLOW}REVERSE DNS LOOKUP FOR {domain}:{RESET}")
         print(tabulate(lookup_results, headers=headers, tablefmt='grid'))
 
     except subprocess.CalledProcessError as e:
-        # Stop the loading animation
-        animation_thread.join()
-        print('\r' + ' ' * 40)  # Clear the loading animation line
-        print(f"{RED}Error executing dig command: {e}{RESET}")
+        print(f"{RED}Error executing dig: {e}{RESET}")
 
-# Function to print help information about PTR and SOA records
+# Function to print help information about PTR and SOA records in a tabulated format
 def print_help_info():
-    print(f"{YELLOW}Usage:{RESET} {GREEN}rdns <domain.tld>{RESET} to reverse DNS lookup all A & AAAA records.")
-    print(f"{YELLOW}Why is this information relevant?{RESET}")
-    print(f"{GREEN}PTR{RESET} will tell you what server the IP's respond to. {CYAN}This is the host!{RESET}")
-    print(f"{RED}SOA{RESET} will tell you the Start of Authority for the domain, but not necessarily the host.")
+    help_info = [
+        (f"{CYAN}INFO{RESET}", "Reverse DNS Lookup lets you see the server your domains IP connects to"),
+        (f"{GREEN}PTR{RESET}", "Indicates which server the individual IP (A/AAAA record) respond to."),
+        (f"{RED}SOA{RESET}", "Shows the Start of Authority for the domain, but not necessarily the host.")
+    ]
+    print(f"{YELLOW}Usage:{RESET} {GREEN}rdns <domain.tld>{RESET}")
+    print(tabulate(help_info, headers=[], tablefmt='grid'))
 
 # Main execution point
 if __name__ == "__main__":
     # Command line argument handling
     if len(sys.argv) < 2:
-        print(f"{YELLOW}Usage: python rdns.py <DOMAIN.TLD>{RESET}")
-        print(f"{YELLOW}For more information, type: python rdns.py -help{RESET}")
-    elif sys.argv[1] in ['-h', '--help', '-help']:
+        print(f"{RED}Please provide a domain.{RESET}")
         print_help_info()  # Call the function to print help information
+    elif sys.argv[1] in ['-h', '--help', '-help']:
+        print_help_info()  # Inputted domain is not legit
+    elif not is_valid_domain(sys.argv[1]):
+        print(f"{RED}That doesn't look like a properly formatted domain or it does not exist.{RESET}")
     else:
-        reverse_dns_lookup(sys.argv[1].upper())
+        reverse_dns_lookup(sys.argv[1].lower())
