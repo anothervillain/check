@@ -65,7 +65,11 @@ Add-on function that uses the openssl s_client command to connect to the specifi
 
 <pre lang="bash">rdns</pre>
 
-Add-on function that looks up the PTR information for all IPv4 and IPv6 records on the given domain, with info whether it's a PTR or SOA record. 
+Add-on function to reverse dns lookup the given domains A and AAAA record. The output lets you know the reporting server (PTR) or whether the result is Start of Authority (SOA).
+
+<kbd>
+  <img src="https://github.com/zhk3r/check/assets/37957791/0e34aeaa-84d7-4a8b-a7c8-2158f6d03bdd)">
+</kbd>
 
 ### **Output and sanitazion of information**
 
