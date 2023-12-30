@@ -67,7 +67,7 @@ def is_subdomain(domain):
 def reverse_dns_lookup(domain):
     # Validate the domain format
     if not is_valid_domain(domain):
-        print(f"{RED}The domain is not valid or does not exist.{RESET}")
+        print(f"{RED}The domain is not properly formatted or its NXDOMAIN.{RESET}")
         return
 
     try:
@@ -117,6 +117,7 @@ if __name__ == "__main__":
         if sys.argv[1] in ['-h', '--help', '-help']:
             print_help_info()  # Inputted domain is not legit
         elif not is_valid_domain(sys.argv[1]):
-            print(f"{RED}That doesn't look like a properly formatted domain or it does not exist.{RESET}")
+            print(f"{RED}That doesn't look like a properly formatted domain or its NXDOMAIN.{RESET}")
         else:
             reverse_dns_lookup(sys.argv[1].lower())
+

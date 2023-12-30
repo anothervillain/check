@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Define the GitHub repository URL
 GITHUB_REPO="https://github.com/zhk3r/check.git"
 # Define the directory to clone the repository into
@@ -16,7 +17,6 @@ cat $ZSHRC_FILE > $TEMP_ZSHRC
 
 # Add the new line beneath 'source $ZSH/oh-my-zsh.sh'
 sed -i "/source \$ZSH\/oh-my-zsh.sh/a source $INSTALL_DIR/check_function.zsh" $TEMP_ZSHRC
-
 # Add the new line beneath 'export ZSH="$HOME/.oh-my-zsh"'
 sed -i "/export ZSH=\"\$HOME\/.oh-my-zsh\"/a export PATH=\"check:\$PATH\"" $TEMP_ZSHRC
 # Check if the line already exists and add if not

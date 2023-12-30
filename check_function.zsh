@@ -23,18 +23,18 @@ check_nxdomain() {
             local whois_result=$(whois $1)
             # Check if WHOIS result contains "No match"
             if echo "$whois_result" | grep -q 'No match'; then
-                # WHOIS check for .no domains specifically to determine if the domain is in quarantine.
+                # WHOIS check for .no domains specifically to determine if the domain is NXDOMAIN
                 echo -e "${RED}NXDOMAIN:${RESET}" ${YELLOW}"No Match"${RESET}" returned from "${BLUE}Norid${RESET}", aborting further checks.${RESET}"
-                echo -e "${YELLOW}This might be an error, do your research!${RESET}"
+                echo -e "${YELLOW}This might be an error, do your research! UwU${RESET}"
                 return 1 # Stopping the script from running further here
             else
-                # If the above checks fail it indicates the domain is in quarantine by SOA response.
+                # If domain has status:NXDOMAIN, and SOA 'charm.norid.no' and the whois equals No match = QUARANTINE
                 echo -e "${RED}$1 looks to be in QUARANTINE${RESET}" "${YELLOW}SOA:${RESET}" "${BLUE}charm.norid.no.${RESET}"
-                echo -e "${YELLOW}This might be an error, do your research!${RESET}"
+                echo -e "${YELLOW}This might be an error, do your research! UwU${RESET}"
                 return 1 # Stopping the script from running further here
             fi
         else
-            # If the NXDOMAIN status is found, but no SOA starting with 'charm.norid.no'
+            # If the NXDOMAIN status is found for any other TLD.
             echo -e "${RED}NXDOMAIN: Non-existent domain, aborting further checks.${RESET}"
             echo -e "${YELLOW}Please verify that you entered the correct domain name.${RESET}"
             return 1 # Stopping the script from running further here
@@ -54,7 +54,7 @@ subdomain_to_fqdn() {
     echo "$main_domain"
 }
 
-    # Function to check SSL certificate without --insecure flag
+# Function to check SSL certificate without --insecure flag
 check_ssl_certificate() {
     local domain=$1
     local ssl_info
@@ -130,7 +130,7 @@ spin(){
         ((i++))
     done
 }
-for _ in {1..1}; do
+for _ in {1..2}; do
     spin
 done
 printf "\r${GREEN}------------------------------------------ ↓${RESET}"
@@ -166,7 +166,7 @@ echo
     # NXDOMAIN & QUARANTINE CHECK
     check_nxdomain $1 || return
 
-    # Clear previous A and AAAA record results
+    # CLEAR PREVIOUS RECORDS FROM FILES (used for RDNS later
     echo "" > a_results.txt
     echo "" > aaaa_results.txt
     # Writing the domain to a file for the Python script to read
@@ -289,35 +289,6 @@ esac
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
     check_ssl_certificate "$1"
-}
-
-# CLEANUP THE RESULTS AND AVOID CACHING
-move_and_cleanup_files() {
-    # Directory where files are currently stored
-    local source_dir="$HOME"
-
-    # Directory where files should be moved
-    local dest_dir="$HOME/check/temp-results"
-
-    # Create the destination directory if it doesn't exist
-    mkdir -p "$dest_dir"
-
-    # Move the specified files to the destination directory
-    mv "$source_dir/a_results.txt" \
-       "$source_dir/a_results.json" \
-       "$source_dir/aaaa_results.txt" \
-       "$source_dir/aaaa_results.jon" \
-       "$dest_dir/"
-
-    # Move the current_domain.txt file for cleanup
-    mv "$source_dir/current_domain.txt" "$dest_dir/"
-
-    # Delete all the files from the destination after their use
-    rm "$dest_dir/a_results.txt" \
-       "$dest_dir/a_results.json" \
-       "$dest_dir/aaaa_results.txt" \
-       "$dest_dir/aaaa_results.jon" \
-       "$dest_dir/current_domain.txt"
 }
 
 # ADD-ON FUNCTIONALITY
