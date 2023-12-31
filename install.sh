@@ -15,13 +15,14 @@ ZSHRC_FILE="$HOME/.zshrc"
 TEMP_ZSHRC=$(mktemp)
 cat $ZSHRC_FILE > $TEMP_ZSHRC
 
-# Add the new line beneath 'source $ZSH/oh-my-zsh.sh'
-sed -i "/source \$ZSH\/oh-my-zsh.sh/a source $INSTALL_DIR/check_function.zsh" $TEMP_ZSHRC
-# Add the new line beneath 'export ZSH="$HOME/.oh-my-zsh"'
-sed -i "/export ZSH=\"\$HOME\/.oh-my-zsh\"/a export PATH=\"check:\$PATH\"" $TEMP_ZSHRC
-# Check if the line already exists and add if not
+# Check if the 'check_function.zsh' line already exists and add if not
 if ! grep -q "source $INSTALL_DIR/check_function.zsh" $ZSHRC_FILE; then
     sed -i "/source \$ZSH\/oh-my-zsh.sh/a source $INSTALL_DIR/check_function.zsh" $TEMP_ZSHRC
+fi
+
+# Check if the 'export PATH' line already exists and add if not
+if ! grep -q "export PATH=\"check:\$PATH\"" $ZSHRC_FILE; then
+    sed -i "/export ZSH=\"\$HOME\/.oh-my-zsh\"/a export PATH=\"check:\$PATH\"" $TEMP_ZSHRC
 fi
 
 # Update the original .zshrc file
