@@ -29,3 +29,5 @@ fi
 mv $TEMP_ZSHRC $ZSHRC_FILE
 # Refresh .zshrc to apply changes
 source $ZSHRC_FILE
+# Restart shell
+exec zsh
