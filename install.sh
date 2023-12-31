@@ -24,10 +24,6 @@ if ! grep -q "source $INSTALL_DIR/check_function.zsh" $ZSHRC_FILE; then
     sed -i "/source \$ZSH\/oh-my-zsh.sh/a source $INSTALL_DIR/check_function.zsh" $TEMP_ZSHRC
 fi
 
-if ! grep -q "export PATH=\"check:\$PATH\"" $ZSHRC_FILE; then
-    sed -i "/export ZSH=\"\$HOME\/.oh-my-zsh\"/a export PATH=\"check:\$PATH\"" $TEMP_ZSHRC
-fi
-
 # Update the original .zshrc file
 mv $TEMP_ZSHRC $ZSHRC_FILE
 # Refresh .zshrc to apply changes
