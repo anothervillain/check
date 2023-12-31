@@ -28,6 +28,8 @@ def dig_reverse_dns_lookup(ip_address, record_type):
                     soa_content = soa_record.split("SOA")[-1].strip()
                     last_period_index = soa_content.rfind('.')
                     soa_content_truncated = soa_content[:last_period_index + 1] if last_period_index != -1 else soa_content
+                    # Append the record type to the SOA record
+                    soa_content_truncated += f" ({record_type})"
                     return "SOA", f"{GREEN}{soa_content_truncated}{RESET}"
         return "NONE", f"{RED}No PTR or SOA record found for {ip_address}{RESET}"
     except subprocess.CalledProcessError as e:
@@ -36,7 +38,6 @@ def dig_reverse_dns_lookup(ip_address, record_type):
 # Global flag to ensure messages are printed only once
 soa_message_printed = False
 header_printed = False
-
 
 # Print only relevant information based on finds
 def print_relevant_answers(ip_addresses, record_type, domain):
@@ -59,10 +60,10 @@ def print_relevant_answers(ip_addresses, record_type, domain):
         print(record)
 
     if soa_records and not soa_message_printed:
-        print(f"{RED}No PTR found. SOA for {domain} is{RESET}")
+        print(f"{RED}No PTR found, Start of Authority for {domain} is{RESET}")
         for record in soa_records:
             print(record)
-        print(f"{CYAN}Tip: You can try using the this command: {RESET}{YELLOW}rdns {domain}{RESET}")
+        print(f"{CYAN}Tip: You can try using this command: {RESET}{YELLOW}rdns {domain}{RESET}")
         soa_message_printed = True
 
 # Load domain from the file created by the .zsh script
