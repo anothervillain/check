@@ -137,20 +137,23 @@ printf "\r${GREEN}------------------------------------------ ↓${RESET}"
 # HELP SECTION ## NEEDS REWRITE
 echo
     if [ "$1" = "--help" ]; then
-        echo -e "${GREEN}Usage: check domain.tld${RESET}"
-        echo "  ${BLUE}Performs the following checks on a domain name:"${RESET}
-        echo "  ${YELLOW}> Looks up any A records and potential AAAA records${RESET}"
-        echo "  ${GREEN}--> and checks if there are any WEBFORWARD or _redir (301) forwarding records.${RESET}"
-        echo "  ${GREEN}> If the domain is forwarding requests from root to www, it'll say it's forwarding.${RESET}"
-        echo "  ${YELLOW}> Pulls the MX and SPF records, even if a special 'SPF' field has been used.${RESET}"
-        echo "  ${YELLOW}> Checks what Nameservers (NS) the domain answers to.${RESET}"
-        echo "  ${YELLOW}> Attempts to do a reverse-dns lookup of the domains primary A and/or AAAA record.${RESET}" 
-        echo "  ${GREEN}--> This is the server that the IP from the A record answers to.${RESET}"
-        echo "  ${YELLOW}> A secondary function if reverse dns lookup fails can be used 'digx' ${RESET}"
-        echo "  ${YELLOW}> Does a whois-lookup of the domain name,${RESET} ${RED}this might fail because of formatting!${RESET}"
-        echo "  ${GREEN}--> If the domain is a .no-domain, a secondary whois on the REG handle will be performed.${RESET}"
-        echo "  ${YELLOW}> Checks if the domain is on any known blocklists.${RESET}"
-        echo "  ${GREEN}--> A secondary function 'blocklist' can be used to look up domain.tld, IPv4 or IPv6 addresses.${RESET}"
+echo -e "${GREEN}Usage: check domain.tld${RESET}"
+echo "  ${BLUE}PRIMARY FUNCTIONALITY:${RESET}"
+echo "  ${YELLOW}> A and AAAA Records: Retrieves A (IPv4) and AAAA (IPv6) DNS records.${RESET}"
+echo "  ${YELLOW}> HTTP-based forwarding (redirection) of all kinds including _redir.${RESET}"
+echo "  ${YELLOW}> MX Records: Pulls Mail Exchange (MX) records indicating the mail servers for the domain.${RESET}"
+echo "  ${YELLOW}> SPF Records: Looks for SPF records to identify authorized mail servers.${RESET}"
+echo "  ${YELLOW}> NS Records: Retrieves Name Server (NS) for DNS management of the domain.${RESET}"
+echo "  ${YELLOW}> Registrar Information from WHOIS: Displays name only.${RESET}"
+echo "  ${YELLOW}> Additional WHOIS for .no domains on the REG handle to display REG-NAME in brackets.${RESET}"
+echo "  ${YELLOW}> SSL Information: Using curl, awk and openssl to test SSL connectivity.${RESET}"
+echo "  ${YELLOW}> Reverse DNS Lookup: Attempts a reverse-DNS lookup of the domains A and/or AAAA records.${RESET}"
+echo "  ${BLUE}ADD-ON FUNCTIONALITY:${RESET}"
+echo "  ${MAGENTA}> checkcert:${RESET}" "${RED}Retrieves TLS certificate details for a domain using curl. If it fails, allows retrying without output modifications.${RESET}"
+echo "  ${MAGENTA}> checkssl:${RESET}" "${RED}Uses openssl to display the SSL/TLS certificate chain for a domain over port 443, useful for troubleshooting.${RESET}"
+echo "  ${MAGENTA}> rdns:${RESET}" "${RED}Performs a fast and dirty reverse DNS lookup of the domain's primary A and AAAA records, reporting the PTR record or SOA.${RESET}"
+echo "  ${CYAN}> Note: The script requires network connectivity and depends on tools like dig, curl, awk, openssl, python, whois and more.${RESET}"
+
         return
     fi
         if [ -z "$1" ]; then
