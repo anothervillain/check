@@ -58,8 +58,12 @@ subdomain_to_fqdn() {
 check_ssl_certificate() {
     local domain=$1
     local ssl_info
-    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
-        /^\*  subject:/ { print cyan $0 reset }
+    ssl_info=$(curl --max-time 10 -vvI "https://$domain" 2>&1 | iconv -f ISO-8859-1 -t UTF-8 | awk -v cyan="$CYAN" -v yellow="$YELLOW" -v magenta="$MAGENTA" -v reset="$RESET" '
+        /^\*  subject:/ {
+            match($0, /CN=[^,]*/)
+            cn = substr($0, RSTART, RLENGTH)
+            print cyan cn reset
+        }
         /^\*  (start|expire) date:/ { print yellow $0 reset }
         /^\*  issuer:/ { print magenta $0 reset }
     ')
