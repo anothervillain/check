@@ -52,8 +52,7 @@ if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the scri
 
 ## Secondary functions
 
-These are supporting functions to the main script that are mostly used for troubleshooting SSL, one using ```openssl``` and the other using ```curl```. The one that uses curl sanitizes a lot of the output, so it gives you the option to retry the connection without any alterations to the output. Lastly the ```digx``` function looks up the primary A records PTR record, fast and dirty reverse DNS lookup.
-
+These are supporting functions to the main script (no flag support)
 <pre lang="bash">checkcert</pre>
 
 Add-on function that retrieves and displays TLS certificate details for the specified domain using curl. If the initial attempt fails, it retries without alterations to the output formatting and color-codes (asks the user to retry [Y/n])
