@@ -1,9 +1,7 @@
 # **check.sh**
 Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and SSL data in your terminal.
 
-<kbd>
-  <img src="https://github.com/zhk3r/check/assets/37957791/e306d0e4-75f2-44ae-a407-ccd4ebfd70ad">
-</kbd>
+![image](https://github.com/zhk3r/check/assets/37957791/e306d0e4-75f2-44ae-a407-ccd4ebfd70ad)
 
 ## **Installation and setup**
 > Fastest way to install, copy and run the following command:
@@ -48,6 +46,7 @@ if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the scri
 | RECORD  | SPF       | ```v=spf``` in TXT and SPF type records.          |
 | RECORD  | NS        | Nameservers                                       |
 | RECORD  | PTR       | Reverse DNS lookup of the A & AAAA records        |
+| RECORD  | CNAME     | Attempt to find information about the host        |
 | WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
 | CURL    | SSL CERT  | With and without insecure flag to check SSL       |
 
