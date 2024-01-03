@@ -8,8 +8,8 @@ INSTALL_DIR="$HOME/check"
 git clone "$GITHUB_REPO" "$INSTALL_DIR"
 # Change to the installation directory
 cd "$INSTALL_DIR"
-# Set execute permissions on rdns.py and update_check.sh
-chmod +x rdns.py update_check.sh
+# Set execute permissions on rdns.py, hostguess.py and update_check.sh
+chmod +x rdns.py hostguess.py update_check.sh
 # Update .zshrc with specific configurations
 ZSHRC_FILE="$HOME/.zshrc"
 TEMP_ZSHRC=$(mktemp)

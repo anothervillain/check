@@ -1,69 +1,66 @@
 import subprocess
 import os
+import colorama
 
-# ANSI color codes
-RED="\033[0;31m"
-GREEN="\033[0;32m"
-YELLOW="\033[0;33m"
-BLUE="\033[0;34m"
-MAGENTA="\033[0;35m"
-CYAN="\033[0;36m"
-RESET="\033[0m"
+# Initialize colorama
+colorama.init(autoreset=True)
+
+# Define ANSI color codes using colorama
+RED = colorama.Fore.RED
+BLUE = colorama.Fore.BLUE
+GREEN = colorama.Fore.GREEN
+YELLOW = colorama.Fore.YELLOW
+MAGENTA = colorama.Fore.MAGENTA
+PINK = colorama.Fore.LIGHTRED_EX
+CYAN = colorama.Fore.CYAN
+RESET = colorama.Style.RESET_ALL
 
 def dig_reverse_dns_lookup(ip_address, record_type):
     try:
-        # Using dig command for detailed reverse DNS lookup
+        # Perform reverse DNS lookup using dig command
         result = subprocess.check_output(["dig", "-x", ip_address, "+noall", "+answer", "+authority"], text=True).strip()
         if result:
-            # Check for PTR records
+            # Check for PTR records in the result
             ptr_records = [line.split('PTR')[-1].strip() for line in result.splitlines() if "PTR" in line]
             if ptr_records:
-                # Return PTR record(s) content
-                return "PTR", f"{GREEN}{' '.join(ptr_records)}{RESET} ({YELLOW}{record_type}{RESET})"
-            else:
-                # Check for SOA record if no PTR record is found
-                soa_record = next((line for line in result.splitlines() if "SOA" in line), None)
-                if soa_record:
-                    # Extract SOA content and truncate at the final period
-                    soa_content = soa_record.split("SOA")[-1].strip()
-                    last_period_index = soa_content.rfind('.')
-                    soa_content_truncated = soa_content[:last_period_index + 1] if last_period_index != -1 else soa_content
-                    # Append the record type to the SOA record
-                    soa_content_truncated += f" ({record_type})"
-                    return "SOA", f"{GREEN}{soa_content_truncated}{RESET}"
-        return "NONE", f"{RED}No PTR or SOA record found for {ip_address}{RESET}"
+                # Return PTR record(s) content and True indicating PTR record found
+                return True, f"{GREEN}{' '.join(ptr_records)}{RESET} ({YELLOW}{record_type}{RESET})"
+            # No PTR records found, check for SOA records
+            soa_records = [line.split('SOA')[-1].strip() for line in result.splitlines() if "SOA" in line]
+            if soa_records:
+                # Truncate SOA record(s) content at the final period
+                soa_content_truncated = soa_records[0].rsplit('.', 1)[0] + '.'
+                # Return SOA record(s) content in MAGENTA color and False indicating PTR record not found
+                return False, f"{MAGENTA}{soa_content_truncated}{RESET}"
+            # Neither PTR nor SOA records found
+            return False, ""
+        # No result from dig command
+        return False, ""
     except subprocess.CalledProcessError as e:
-        return "ERROR", f"{RED}Lookup failed for {ip_address}: {e}{RESET}"
+        # Handle errors from the subprocess call
+        return False, ""
 
-# Global flag to ensure messages are printed only once
+# Global flags to ensure messages are printed only once
 soa_message_printed = False
 header_printed = False
 
-# Print only relevant information based on finds
 def print_relevant_answers(ip_addresses, record_type, domain):
     global soa_message_printed, header_printed
-    ptr_records = []
-    soa_records = set()
-
-    for ip in ip_addresses:
-        record_type_found, result = dig_reverse_dns_lookup(ip, record_type)
-        if record_type_found == "PTR":
-            ptr_records.append(result)
-        elif record_type_found == "SOA":
-            soa_records.add(result)
-
-    if (ptr_records or soa_records) and not header_printed:
+    if not header_printed:
         print(f"{YELLOW}REVERSE DNS LOOKUP{RESET}")
         header_printed = True
 
-    for record in ptr_records:
-        print(record)
+    ptr_found_any = False
+    for ip in ip_addresses:
+        # Perform reverse DNS lookup for each IP address
+        ptr_found, lookup_result = dig_reverse_dns_lookup(ip, record_type)
+        if ptr_found:
+            # Print the PTR record if found
+            print(lookup_result)
+            ptr_found_any = True
 
-    if soa_records and not soa_message_printed:
-        print(f"{RED}No PTR found, Start of Authority for {domain} is{RESET}")
-        for record in soa_records:
-            print(record)
-        print(f"{CYAN}Tip: You can try using this command: {RESET}{YELLOW}rdns {domain}{RESET}")
+    if not ptr_found_any and not soa_message_printed:
+        print(f"{RED}SOA: {lookup_result}{RESET}")
         soa_message_printed = True
 
 # Load domain from the file created by the .zsh script

@@ -2,15 +2,17 @@ import subprocess
 import sys
 from tabulate import tabulate
 import colorama
-import re
 
-# Initialize colorama for colored terminal text
+# Initialize colorama
 colorama.init(autoreset=True)
 
-# Define ANSI color codes
+# Define ANSI color codes using colorama
 RED = colorama.Fore.RED
+BLUE = colorama.Fore.BLUE
 GREEN = colorama.Fore.GREEN
 YELLOW = colorama.Fore.YELLOW
+MAGENTA = colorama.Fore.MAGENTA
+PINK = colorama.Fore.LIGHTRED_EX
 CYAN = colorama.Fore.CYAN
 RESET = colorama.Style.RESET_ALL
 

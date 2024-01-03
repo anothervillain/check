@@ -1,7 +1,3 @@
-# FUNCTIONS NESTED OUTSIDE OF 'check' ITSELF TO AVOID CLUSTERFUCK.
-# THESE CAN BE CALLED UPON BY OTHER FUNCTIONS INSIDE 'check' ITSELF.
-# USE THE ANSI COLOR CODES BELOW.
-
 # ANSI color codes
 RED="\033[0;31m"
 GREEN="\033[0;32m"
@@ -13,6 +9,11 @@ RESET="\033[0m"
 
 # Function to check domain header for status: NXDOMAIN
 check_nxdomain() {
+    # Check if the input domain contains two consecutive periods
+    if echo "$1" | grep -q '\.\.'; then
+        echo -e "${RED}Invalid domain: two consecutive periods (dns..tld), aborting further checks.${RESET}"
+        return 1 # Stopping the script from running further here
+    fi
     # Perform a prelimiary 'dig a' on the given domain
     local domain_status=$(dig a $1 +cmd)
     # Check if the header contains status: NXDOMAIN
@@ -42,12 +43,24 @@ check_nxdomain() {
     fi
 }
 
-# Function to convert subdomain to FQDN for WHOIS lookup ## (Can this mess up?)
+# Function to convert subdomain to FQDN for WHOIS lookup
 subdomain_to_fqdn() {
     local domain=$1
-    local main_domain="${domain##*.}"
-    domain="${domain%.*}"
-    main_domain="${domain##*.}.$main_domain"
+    # Array of specific subdomains to exclude
+    local exclude_subdomains=("kommune.no")
+    # Extract the top-level domain (TLD) and second-level domain (SLD) from the domain name
+    local tld="${domain##*.}"
+    local second_level="${domain%.*}"
+    local sld="${second_level##*.}.$tld"
+    # Check if the SLD matches any excluded subdomain patterns
+    for excluded_domain in "${exclude_subdomains[@]}"; do
+        if [[ "$sld" == *"$excluded_domain" ]]; then
+            echo "$domain" # Output the original domain as it matches the exclusion pattern
+            return 0
+        fi
+    done
+    # Convert to FQDN
+    local main_domain="$sld"
     if [[ "$main_domain" != "$1" ]]; then
         echo -e "${RED}$1 doesn't look like a FQDN${RESET}" "${GREEN}WHOIS for $main_domain:${RESET}" >&2
     fi
@@ -79,42 +92,15 @@ check_ssl_certificate() {
 PYTHON_SCRIPT_PATH="/home/$USER/check/rdns.py"
 # Function to execute the Python script with the provided domain
 rdns() {
-    # Check if the script file exists
     if [ ! -f "$PYTHON_SCRIPT_PATH" ]; then
         echo "Error: rdns.py not found at the specified path."
         return 1
     fi
-    
     if [ -z "$1" ]; then
         echo "Usage: rdns <domain.tld>"
         return 1
     fi
     python3 "$PYTHON_SCRIPT_PATH" "$@"
-}
-
-# Function to execute a command with a timeout ## INACTIVE
-execute_with_timeout() {
-    local duration=$1
-    shift
-    timeout --preserve-status "$duration" "$@"
-}
-
-# Function to kill the current check and continue ## INACTIVE
-execute_with_interrupt() {
-    "$@" &
-    local cmd_pid=$!
-    # Wait for the command to finish or user to press Enter
-    read -s -t 0.1 -k 1 input
-    while [ -z "$input" ] && kill -0 $cmd_pid 2> /dev/null; do
-        read -s -t 0.1 -k 1 input
-    done
-    # If user pressed Enter, kill the command
-    if [ -n "$input" ]; then
-        kill $cmd_pid 2> /dev/null
-        echo -e "\n${YELLOW}Skipping current check...${RESET}"
-    fi
-    
-    wait $cmd_pid 2> /dev/null
 }
 
 # THE FUNCTION STARTS HERE! :)
@@ -150,19 +136,14 @@ check() {
         echo "  ${YELLOW}> Additional WHOIS for .no domains on the REG handle to convert to [NAME].${RESET}"
         echo "  ${YELLOW}> SSL Information: Using curl, awk and openssl to test SSL connectivity.${RESET}"
         echo "  ${YELLOW}> Reverse DNS Lookup: Attempts a reverse-DNS lookup of the domains A and/or AAAA records.${RESET}"
+        echo "  ${YELLOW}> Guesses the hosting provider based on a few criteria, prone to mistakes!.${RESET}"
         echo "  ${BLUE}ADD-ON FUNCTIONALITY:${RESET}"
         echo "  ${MAGENTA}> checkcert:${RESET}" "${RED}Curls for TLS information.${RESET}"
         echo "  ${MAGENTA}> checkssl:${RESET}" "${RED}Connect to the hostname and display certificate chain.${RESET}"
         echo "  ${MAGENTA}> rdns:${RESET}" "${RED}Lookup a domains PTR and SOA.${RESET}"
-        echo "  ${CYAN}> Note: The script requires network connectivity and depends on tools like dig, curl, awk, openssl, python, whois and more.${RESET}"
-        
+        echo "  ${CYAN}> Note: This script can be produce incorrect responses.${RESET}"
         return
     fi
-    if [ -z "$1" ]; then
-        echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
-        return
-    fi
-    # EMPTY INPUT
     if [ -z "$1" ]; then
         echo -e "Use ${GREEN}check domain.tld${RESET} or ${YELLOW}check --help${RESET} for more information."
         return
@@ -176,18 +157,23 @@ check() {
     echo "" > aaaa_results.txt
     # Writing the domain to a file for the .py script
     echo "$1" > current_domain.txt
-    
+
     # A RECORD(S)
     echo -e "${YELLOW}A RECORD(S)${RESET}"
     a_result=$(dig a "$1" +short)
     if [ -z "$a_result" ]; then
         echo -e "${RED}No A record found for $1${RESET}"
     else
-        echo -e "${GREEN}$a_result${RESET}"
+        # Check if the A record is using SSL Redirect Proxy or Default A Record
+        if echo "$a_result" | grep -q '104.37.39.71'; then
+            echo -e "${GREEN}$a_result${RESET} (SSL Redirect Proxy or default A record)"
+        else
+            echo -e "${GREEN}$a_result${RESET}"
+        fi
         # Store A record result in a file
         echo "$a_result" | tr ' ' '\n' > a_results.txt
     fi
-    
+
     # AAAA RECORD(S)
     aaaa_result=$(dig aaaa "$1" +short)
     if [[ -n "$aaaa_result" && ! $aaaa_result =~ "(empty label)" ]]; then
@@ -196,7 +182,6 @@ check() {
         # Store AAAA record result in a file
         echo "$aaaa_result" | tr ' ' '\n' > aaaa_results.txt
     fi
-    
     
     # HTTP, WEB, REDIR, AND WWW FORWARDING CHECK
     http_status=$(curl -s -o /dev/null -w "%{http_code}" -L --head "https://$1")
@@ -222,7 +207,6 @@ check() {
     if [ -n "$parked_txt_record" ]; then
         echo -e "${YELLOW}PARKED DOMAIN${RESET}"
         echo -e "${GREEN}The domain $1 looks like it's parked${RESET}"
-    else
     fi
     
     # MX RECORD(S)
@@ -256,55 +240,17 @@ check() {
     else
         echo -e "${GREEN}$ns_result${RESET}"
     fi
-    
-    # HOST GUESSER
-    echo -e "${YELLOW}HOST GUESSER${RESET}" #"${RED}(might not be correct at all)${RESET}"
-    www_cname_result=$(dig www."$1" CNAME +short | grep -v '^$')
-    known_host_found=0 # Skips the next checks if found
-    # Check for known hosting providers first
-    if [[ $www_cname_result == *"squarespace.com"* ]]; then
-        echo -e "${GREEN}Hosted on Squarespace!${RESET}"
-        known_host_found=1
-        elif [[ $www_cname_result == *"shopify.com"* ]]; then
-        echo -e "${GREEN}Hosted on Shopify!${RESET}"
-        known_host_found=1
-        elif [[ $www_cname_result == *"wixdns.net"* ]]; then
-        echo -e "${GREEN}Hosted on Wix!${RESET}"
-        known_host_found=1
-        # If no known hosts are found, then check www-subdomain value
-        elif [ -z "$www_cname_result" ] || [[ $www_cname_result == "$1." ]]; then
-        echo -e "${MAGENTA}www.$1 --> $1${RESET}"
-    else
-        echo -e "${MAGENTA}www.$1 -->${RESET}" "${GREEN}$www_cname_result${RESET}"
-    fi
-    # WHOIS lookup the first available IPv4 address and extract Organization name
-    # This is not without its issues
-    if [ $known_host_found -eq 0 ]; then
-        a_result=$(dig a "$1" +short | head -n 1) # Get the first A record
-        if [ ! -z "$a_result" ]; then
-            # Check for redirect proxy
-            if [ "$a_result" = "104.37.39.71" ]; then
-                echo -e "${GREEN}${a_result}${RESET} <-- ${YELLOW}FORWARDING${RESET} --> ${GREEN}Using Redirect Proxy${RESET}"
-                echo -e "${RED}The domain is just forwarding, no hosted content on $1${RESET}"
-            else
-                whois_output=$(whois "$a_result")
-                org_name=$(echo "$whois_output" | awk -F: '/org-name|OrgName|Organization:/{gsub(/^[ \t]+/, "", $2); print $2; exit}')
-                
-                if [ ! -z "$org_name" ]; then
-                    echo -e "${GREEN}${a_result}${RESET} <-- ${YELLOW}WHOIS${RESET} --> ${GREEN}${org_name}${RESET}"
-                fi
-            fi
-        fi
-    fi
-    
-    
+        
     # REVERSE DNS LOOKUP (Python)
     python3 ~/check/reverse-dns-lookup.py
+    
+    # HOST GUESSER (Python)
+    python3 ~/check/hostguess.py $1
     
     # REGISTRAR
     local domain=$1
     echo -e "${YELLOW}REGISTRAR${RESET}"
-    # Convert subdomain to FQDN
+    # Convert subdomain to FQDN (or keep as is if it's an excluded subdomain)
     local main_domain=$(subdomain_to_fqdn "$domain")
     # First lookup for registrar result in single-line format
     local registrar_result_single_line=$(whois "$main_domain" | grep -E 'Registrar:' | sed -n 's/Registrar: *//p' | head -n 1 | xargs)
