@@ -1,7 +1,9 @@
 # **check.sh**
 Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and SSL data in your terminal.
 
-![image](https://github.com/zhk3r/check/assets/37957791/e306d0e4-75f2-44ae-a407-ccd4ebfd70ad)
+<kbd>
+<img src="https://github.com/zhk3r/check/assets/37957791/3550f2ef-83cd-465b-8283-e9e6c247b5bc">
+</kbd>
 
 ## **Installation and setup**
 > Fastest way to install, copy and run the following command:
@@ -17,7 +19,7 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install
 | ```exprt PATH=\"\$PATH:$pip3_path\"```               | Add to your .zshrc or equvialent.                     |
 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.                     |
 | ```git clone https://github.com/zhk3r/check.git```   | Into your terminal                                    |
-| ```chmod +x rdns.py update_check.sh```               | Into your terminal, makes the scripts run.            |
+| ```chmod +x rdns.py hostguess.py update_check.sh```  | Into your terminal, makes the scripts run.            |
 | ```exec zsh```                                       | Restart your terminal/shell                           |
 
 ## **Lookup relevant domain information**
@@ -46,7 +48,7 @@ if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the scri
 | RECORD  | SPF       | ```v=spf``` in TXT and SPF type records.          |
 | RECORD  | NS        | Nameservers                                       |
 | RECORD  | PTR       | Reverse DNS lookup of the A & AAAA records        |
-| RECORD  | CNAME     | Attempt to find information about the host        |
+| GUESS   | LOGIC     | Attempts to guess the host :)                     |
 | WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
 | CURL    | SSL CERT  | With and without insecure flag to check SSL       |
 
