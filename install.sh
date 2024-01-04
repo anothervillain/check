@@ -28,7 +28,7 @@ fi
 # Update the original .zshrc file
 mv $TEMP_ZSHRC $ZSHRC_FILE
 # Restart shell
-exec zsh
+source ZSHRC_FILE
 
 # Download the simple-path theme from the wsl repository
 curl -fsSL https://raw.githubusercontent.com/zhk3r/wsl/main/simple-path.zsh-theme -o "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/simple-path.zsh-theme"
