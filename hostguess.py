@@ -54,16 +54,16 @@ def host_guesser(domain):
             print(f"{GREEN}{a_result}{RESET} (SSL Redirect Proxy or default A record)")
         # KNOWN HOSTS: External website builders
         elif ".squarespace.com" in www_cname_result:
-            print(f"{GREEN}Hosted at Squarespace{RESET} {PINK}| www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
+            print(f"{GREEN}Hosted at Squarespace |{RESET} {PINK}www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
         elif "shopify.com" in www_cname_result:
-            print(f"{GREEN}Hosted at Shopify{RESET} {PINK}| www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
+            print(f"{GREEN}Hosted at Shopify |{RESET} {PINK}www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
         elif "wixdns.net" in www_cname_result:
-            print(f"{GREEN}Hosted at Wix{RESET} {PINK}| www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
+            print(f"{GREEN}Hosted at Wix |{RESET} {PINK}www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
         elif "hostinger.com" in www_cname_result:
-            print(f"{GREEN}Hosted at Hostinger{RESET} {PINK}| www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
+            print(f"{GREEN}Hosted at Hostinger |{RESET} {PINK}www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
         elif "proxy-ssl.webflow.com" in www_cname_result:
-            print(f"{GREEN}Hosted at Webflow{RESET} {PINK}| www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
-        # KNOWN HOSTS: Known brands that we deal with
+            print(f"{GREEN}Hosted at Webflow |{RESET} {PINK}www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
+        # KNOWN HOSTS: Our brands
         elif is_ip_in_range(a_result, "104.37.39.0/24"):
             print(f"{GREEN}Hosted at Digital Garden!{RESET} {PINK}based on IP range{RESET}")
         elif is_ip_in_range(a_result, "195.47.247.0/24"):
@@ -72,6 +72,9 @@ def host_guesser(domain):
             print(f"{GREEN}Hosted at SYSE!{RESET} {PINK}Guess based on RDNS lookup.{RESET}")
         elif ".proisp.no" in reverse_dns_result:
             print(f"{GREEN}Hosted at (Legacy) ProISP!{RESET} {PINK}Guess based on RDNS lookup.{RESET}")
+        elif "webcluster1.webpod1-osl1.one.com" in reverse_dns_result:
+            print(f"{GREEN}Hosted at ProISP!{RESET} {PINK}Guess based on RDNS lookup.{RESET}")
+            # KNOW HOSTS: Known brands outisde our ecosystem
         elif "domeneshop.no" in reverse_dns_result or "domainname.shop" in reverse_dns_result:
             print(f"{GREEN}Hosted at Domeneshop!{RESET} {PINK}Guess based on RDNS lookup.{RESET}")
         else:
