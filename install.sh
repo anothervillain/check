@@ -31,3 +31,12 @@ mv $TEMP_ZSHRC $ZSHRC_FILE
 source $ZSHRC_FILE
 # Restart shell
 exec zsh
+
+# Download the simple-path theme from the wsl repository
+curl -fsSL https://raw.githubusercontent.com/zhk3r/wsl/main/simple-path.zsh-theme -o "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/simple-path.zsh-theme"
+
+# Update ZSH_THEME in .zshrc to use 'simple-path'
+sed -i 's/^ZSH_THEME="robbyrussell"/ZSH_THEME="simple-path"/' $HOME/.zshrc
+
+# Restart shell
+exec zsh
