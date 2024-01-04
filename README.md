@@ -2,8 +2,9 @@
 Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and SSL data in your terminal.
 
 <kbd>
-<img src="https://github.com/zhk3r/check/assets/37957791/3550f2ef-83cd-465b-8283-e9e6c247b5bc">
+<img src="https://github.com/zhk3r/check/assets/37957791/e47e87ab-1ed1-49c6-8299-cfe066ed7c3a">
 </kbd>
+
 
 ## **Installation and setup**
 > Fastest way to install, copy and run the following command:
