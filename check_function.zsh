@@ -282,6 +282,9 @@ check() {
     # SSL CERTIFICATE
     echo -e "${YELLOW}SSL CERTIFICATE${RESET}"
     check_ssl_certificate "$1"
+
+    # DELETE TEMPORARY FILES FOR .PY SCRIPTS
+    rm -rf "current_domain.txt" "a_results.txt" "aaaa_results.txt"
 }
 
 # ADD-ON FUNCTIONALITY
