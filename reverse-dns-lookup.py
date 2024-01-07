@@ -60,7 +60,7 @@ def print_relevant_answers(ip_addresses, record_type, domain):
             ptr_found_any = True
 
     if not ptr_found_any and not soa_message_printed:
-        print(f"{RED}SOA: {lookup_result}{RESET}")
+        print(f"{lookup_result} {RED}(SOA){RESET}")
         soa_message_printed = True
 
 # Load domain from the file created by the .zsh script
