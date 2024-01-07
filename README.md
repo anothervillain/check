@@ -15,14 +15,10 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/testing/instal
 
 > If you like doing stuff manually you have to:
 
-| Copy-paste this                                      | Where                                                 |
+| For ease of use                                      | To something like                                     |
 | :----------------------------------------------------|:------------------------------------------------------|
-| ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.                     |
-| ```exprt PATH=\"\$PATH:$pip3_path\"```               | Add to your .zshrc or equvialent.                     |
-| ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.                     |
-| ```git clone https://github.com/zhk3r/check.git```   | Into your terminal                                    |
-| ```chmod +x rdns.py hostguess.py update_check.sh```  | Into your terminal, makes the scripts run.            |
-| ```exec zsh```                                       | Restart your terminal/shell                           |
+| Create an alias for check.sh                         | ```alias check='check.sh'```                          |
+
 
 ## **Lookup relevant domain information**
 
