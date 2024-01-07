@@ -10,7 +10,8 @@ Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and 
 > Fastest way to install, copy and run the following command:
 
 <pre lang="bash">
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install.sh)"
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/testing/install.sh)
+  
 </pre>
 > If you like doing stuff manually you have to:
 
