@@ -42,7 +42,7 @@ def perform_whois_lookup(ip_address):
     return None
 
 def host_guesser(domain):
-    print(f"{YELLOW}HOST GUESSER{RESET} {CYAN}* Estimated guess!")
+    print(f"{YELLOW}HOST GUESSER{RESET}")
     try:
         # Checking for known hosts through CNAME
         www_cname_result = subprocess.check_output(["dig", "www." + domain, "CNAME", "+short"], text=True).strip()
