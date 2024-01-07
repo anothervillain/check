@@ -12,7 +12,6 @@ RESET="\e[0m"
 # Sourcing help to avoid double-posts
 source check_help.sh
 
-# Function to check if the domain exists and is not in quarantine
 check_domain() {
     local domain=$1
     # Check for invalid domain format
@@ -57,7 +56,6 @@ check_domain() {
     done
 }
 
-# REGISTRAR Extraction
 check_registrar() {
     local domain=$1
     # Perform registrar check
@@ -113,7 +111,7 @@ record_last_run() {
 # Function to check if the last run can be skipped
 can_skip_checks() {
     local domain=$1
-    local time_frame=300 # 5 minutes in seconds
+    local time_frame=30 # 30 seconds
 
     if [[ -f "$tmp_file" ]]; then
         read -r last_domain last_time < "$tmp_file"
@@ -127,48 +125,68 @@ can_skip_checks() {
 
 check() {
     local domain=$1
-    local skip_checks=false
-    # Check if only flags are provided and if we can skip checks
-    if [[ $# -gt 1 && $(can_skip_checks "$domain") -eq 0 ]]; then
-        skip_checks=true
-    fi
-    if [[ -z "$domain" ]]; then
-        # [Your existing introduction code]
-        echo -e "${MAGENTA}Version: check.sh v.0.1.152b!${RESET}"
-        echo -e "${GREEN}This tool quickly checks up on a domain's relevant information${RESET}"
-        echo -e "For detailed help, please use: ${YELLOW}check -help${RESET}"
-    elif [[ "$domain" == "-help" ]]; then
+
+    if [[ -z "$domain" || "$domain" == "-help" ]]; then
+        [[ -z "$domain" ]] && echo -e "For detailed help, use: check -help"
         show_help
         return
-    elif ! $skip_checks; then
-        # Perform domain existence and registrar checks
-        echo -e "${MAGENTA}------------------------------------------${RESET}"
-        echo -e "${YELLOW}${1^^} REGISTRATION INFORMATION${RESET}"
-        echo -e "${MAGENTA}------------------------------------------${RESET}"
-        check_domain "$domain" && check_registrar "$domain"
-        record_last_run "$domain"
     fi
-    # Move past the domain argument to process flags
+
+    local is_domain_valid=true
+
+    # Perform checks only if the domain is not a flag
+    if ! [[ "$domain" =~ ^- ]]; then
+        if ! $(can_skip_checks "$domain"); then
+            echo -e "${MAGENTA}------------------------------------------${RESET}"
+            echo -e "${YELLOW}${domain^^} REGISTRATION INFORMATION${RESET}"
+            echo -e "${MAGENTA}------------------------------------------${RESET}"
+
+            if ! check_domain "$domain"; then
+                is_domain_valid=false
+            else
+                check_registrar "$domain"
+                record_last_run "$domain"
+            fi
+        fi
+    fi
+
+    # Process additional flags
     shift
     while (( "$#" )); do
-        case "$1" in
-            -all)
-                # Call each script with the domain
-                call_script "host" "$domain"
-                call_script "mail" "$domain"
+        local flag=$1
+        case "$flag" in
+            -all|--all|+all|-a)
+                if $is_domain_valid; then
+                    # Call scripts for all checks
+                    call_script "mail" "$domain"
+                    call_script "host" "$domain"
+                    # Additional checks...
+                else
+                    echo -e "${RED}Error: Domain not valid or unsupported flag $flag.${RESET}"
+                fi
                 ;;
-            -host | -mail | -rdns | -ssl | -cert)
-                local flag="${1#-}"
-                call_script "$flag" "$domain"
+            -host|--host|-h)
+                [ $is_domain_valid == true ] && call_script "host" "$domain"
+                ;;
+            -mail|--mail|-m)
+                [ $is_domain_valid == true ] && call_script "mail" "$domain"
+                ;;
+            -cert|--cert|-c)
+                [ $is_domain_valid == true ] && call_script "cert" "$domain"
+                ;;
+            -ssl|--ssl|-s)
+                [ $is_domain_valid == true ] && call_script "ssl" "$domain"
+                ;;
+            -rdns|--rdns|-r)
+                [ $is_domain_valid == true ] && call_script "rdns" "$domain"
                 ;;
             *)
-                echo -e "${RED}Error:${RESET} Unsupported flag $1" >&2
-                return 1
+                echo -e "${RED}Error: Unsupported flag $flag.${RESET}"
                 ;;
         esac
         shift # Move to the next argument/flag
     done
 }
 
-# Start the script
+# Call check with all arguments
 check "$@"
