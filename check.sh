@@ -10,7 +10,7 @@ CYAN="\e[0;36m"
 RESET="\e[0m"
 
 # Sourcing help to avoid double-posts
-source check_help.sh
+source ~/check/check_help.sh
 
 check_domain() {
     local domain=$1
@@ -23,14 +23,14 @@ check_domain() {
     local domain_status="$(dig +short A "$domain")"
     local whois_status="$(whois "$domain")" | grep -q 'No match';
     if [[ -z "$domain_status" ]]; then
-        echo -e "${RED}NXDOMAIN: The domain $domain does not exist.${RESET}"
-        echo -e "${GREEN}Ensure you wrote $domain correctly!${RESET}"
+        echo -e "${RED}NXDOMAIN: The domain${RESET}" "${CYAN}$domain${RESET}" "${RED}does not exist.${RESET}"
+        echo -e "${YELLOW}Ensure you wrote${RESET}" "${CYAN}$domain${RESET}" "${YELLOW}correctly!${RESET}"
         return 1
     elif echo "$whois_status" | grep -q 'No match'; then
         echo -e "${YELLOW}Domain${RESET}" "${BLUE}$domain${RESET}" "${YELLOW}is in quarantine.${RESET}"
         return 1
     else
-        echo -e "${YELLOW}Valid:${RESET}" "${GREEN}Domain $domain looks like it exists.${RESET}"
+        echo -e "${YELLOW}Valid:${RESET}" "${CYAN}$domain${RESET}" "${GREEN}looks to be registered.${RESET}"
     fi
     while (( "$#" )); do
         case "$1" in
@@ -51,6 +51,9 @@ check_domain() {
                 ;;
             -rdns)
                 call_script "rdns" "$domain"
+                ;;
+            -dns)
+                call_script "dns_admin" "$domain"
         esac
         shift # Move to the next argument/flag
     done
@@ -76,10 +79,57 @@ check_registrar() {
     fi
     # Prepare registrar information for output
     if [ -n "$registrar_result" ]; then
-        echo -e "${YELLOW}Registrar:${RESET} ${GREEN}$registrar_result${RESET}"
+        echo -e "${YELLOW}Registrar:${RESET}" "${GREEN}$registrar_result${RESET}"
     else
         echo -e "${RED}No Registrar information found for $domain${RESET}"
         echo -e "${YELLOW}Perform${RESET} whois $domain ${YELLOW}instead!${RESET}"
+    fi
+}
+
+shopt -s nocasematch
+
+# Pattern to match nameserver to a service provider
+declare -A ns_host_patterns
+# KNOWN HOSTS - OTHER LARGE PROVIDERS
+ns_host_patterns["Cloudflare"]="cloudflare\(.net|com|org|net)"
+ns_host_patterns["Amazon AWS"]="awsdns-|amzndns\.(co\.uk|com|net|org)"
+ns_host_patterns["Google Cloud DNS"]="googledomains\.com|google\.com$"
+ns_host_patterns["Microsoft Azure"]="azure-dns\.com"
+ns_host_patterns["GoDaddy"]="domaincontrol\.com|godaddy\.com$"
+ns_host_patterns["Netlify"]="nsone\.net"
+# KNOWN HOSTS - LOCAL PROVIDERS
+ns_host_patterns["SYSE"]="syse\.no"
+ns_host_patterns["Digital Garden"]="uniweb\.no|fastname\.no|ns01\.no\.brand\.one\.com|ns02\.no\.brand\.one\.com"
+ns_host_patterns["One.com"]="one-(net|com|org)|one-dns\.(net|com|org)"
+ns_host_patterns["Domeneshop"]="hyp\.net$"
+ns_host_patterns["Netclient Services"]="netclient\(.no|net|com|org)"
+
+
+shopt -u nocasematch
+
+# Define the check_nameserver function
+check_nameserver() {
+    local domain=$1
+    local ns_results=($(dig ns "$domain" +short))
+    if [ -z "$ns_results" ]; then
+        # Don't print anything if no nameservers are found
+        shopt -u nocasematch
+        return 1
+    fi
+
+    local matched_service=""
+    for ns in "${ns_results[@]}"; do
+        for service in "${!ns_host_patterns[@]}"; do
+            local pattern="${ns_host_patterns[$service]}"
+            if [[ "$ns" =~ $pattern ]]; then
+                matched_service=$service
+                break 2 # Break out of both loops
+            fi
+        done
+    done
+
+    if [ -n "$matched_service" ]; then
+        echo -e "${YELLOW}DNS administration:${RESET}" "${GREEN}${matched_service}.${RESET}"
     fi
 }
 
@@ -111,7 +161,7 @@ record_last_run() {
 # Function to check if the last run can be skipped
 can_skip_checks() {
     local domain=$1
-    local time_frame=30 # 30 seconds
+    local time_frame=15 # 15 seconds
 
     if [[ -f "$tmp_file" ]]; then
         read -r last_domain last_time < "$tmp_file"
@@ -126,8 +176,13 @@ can_skip_checks() {
 check() {
     local domain=$1
 
-    if [[ -z "$domain" || "$domain" == "-help" ]]; then
-        [[ -z "$domain" ]] && echo -e "For detailed help, use: check -help"
+    if [[ -z "$domain" ]]; then
+        echo -e "${YELLOW}Usage:${RESET}" "${GREEN}check domain.tld${RESET}" "${MAGENTA}-flag${RESET}"
+        echo -e "${YELLOW}For detailed intstructions type:${RESET}" "${CYAN}check -help${RESET}"
+        return
+    fi
+
+    if [[ "$domain" == "-help" ]]; then
         show_help
         return
     fi
@@ -145,6 +200,7 @@ check() {
                 is_domain_valid=false
             else
                 check_registrar "$domain"
+                check_nameserver "$domain"
                 record_last_run "$domain"
             fi
         fi
@@ -160,7 +216,6 @@ check() {
                     # Call scripts for all checks
                     call_script "mail" "$domain"
                     call_script "host" "$domain"
-                    # Additional checks...
                 else
                     echo -e "${RED}Error: Domain not valid or unsupported flag $flag.${RESET}"
                 fi
@@ -168,7 +223,7 @@ check() {
             -host|--host|-h)
                 [ $is_domain_valid == true ] && call_script "host" "$domain"
                 ;;
-            -mail|--mail|-m)
+            -mail|--mail|-m|-e)
                 [ $is_domain_valid == true ] && call_script "mail" "$domain"
                 ;;
             -cert|--cert|-c)
