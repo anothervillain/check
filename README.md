@@ -1,68 +1,104 @@
-## **About this tool/script**
-Usage: ```check domain.tld``` to lookup relevant DNS, WHOIS and SSL information in your terminal.
+# **check.sh**
+Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and SSL data in your terminal.
 
-![front](https://github.com/zhk3r/check/assets/37957791/2103887d-3946-44cc-bd0b-edc2205a0b27)
+<kbd>
+<img src="https://github.com/zhk3r/check/assets/37957791/e47e87ab-1ed1-49c6-8299-cfe066ed7c3a">
+</kbd>
 
 
 ## **Installation and setup**
-| * | Copy-paste this!                                     | "But to where you ask"                        |
-| :-| :----------------------------------------------------|:----------------------------------------------|
-| 1 | ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.             |
-| 2 | ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.             |
-| 3 | ```alias uc='update_check.sh'```                     | (Optional) set an alias for the update script |
-| 4 | ```git clone https://github.com/zhk3r/check.git```   | to clone this repo.                           |
-| 5 | ```chmod +x ~/check/update_check.sh```               | to make the update script run.                |
-| 6 | ```source .zshrc```                                  | or equivalent (restart terminal)              |
+> Fastest way to install, copy and run the following command:
 
-You should be good to go!
+<pre lang="bash">
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/master/install.sh)"
+</pre>
+> If you like doing stuff manually you have to:
 
-### Updating the script
-After updating the script you will have to either, 
+| Copy-paste this                                      | Where                                                 |
+| :----------------------------------------------------|:------------------------------------------------------|
+| ```export PATH="check:$PATH"```                      | Add to your .zshrc or equivalent.                     |
+| ```exprt PATH=\"\$PATH:$pip3_path\"```               | Add to your .zshrc or equvialent.                     |
+| ```source ~/check/check_function.zsh```              | Add to your .zshrc or equivalent.                     |
+| ```git clone https://github.com/zhk3r/check.git```   | Into your terminal                                    |
+| ```chmod +x rdns.py hostguess.py update_check.sh```  | Into your terminal, makes the scripts run.            |
+| ```exec zsh```                                       | Restart your terminal/shell                           |
 
-1) ```source .zshrc``` (or equivalent).
-2) Restart your terminal.
-3) Open up a new terminal tab.
+## **Lookup relevant domain information**
 
-## **Preliminary checks before actually starting the script** 
-1) Checks for 'NXDOMAIN' status in the header-information.
-2) Checks whether or not the domain SOA beings with 'charm.norid.no' e.g *[quarantine]*
-   
-- If the domain has the 'NXDOMAIN' status the script will inform about it and stop. 
-- If the domain SOA matches 'charm.norid.no' the script will inform about it and stop. 
+```check domain.tld``` will first:
 
-## **Domain information**
-The script will look for the following information on the given domain:
+<details>
+  <summary>Check for 'status: NXDOMAIN' in the header information</summary>
+this status indicates that the domain does not exist, the script will stop here.
+</details>
+<details>
+  <summary>Check if the domain is in QUARANTINE</summary>
+if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the script will whois the domain and look for "No match" - if that string isn't found the script will report the domain as in QUARANTINE.
+</details>
 
+- [x] **Passing both checks lets the script look for:**
 
-| WHAT      | WHICH     | EXPLANATION                                   |
-| :---------|:----------|:----------------------------------------------|
-| RECORD    | A         | Looks up any A records                        |
-| RECORD    | AAAA      | Looks up any AAAA records                     |
-| FORWARD   | HTTP      | Checks for http_status-based forwarding       |        
-| FORWARD   | redir     | Checks for _redir forwarding                  |
-| FORWARD   | parked    | Checks for parked messages                    |
-| RECORD    | MX        | Looks up Mail Exchange records.               |
-| RECORD    | SPF       | Searches for SPF records in TXT + SPF         |   
-| RECORD    | NS        | Nameservers                                   | 
-| DNSLOOKUP | REVERSE   | Reverse DNS lookup on both A & AAAA records   |         
-| WHOIS     | REGISTRAR | WHOIS and pull registrar name                 |
-| CURL      | SSL CERT  | Check SSL certificate status                  |
+| What    | Content   |  Explanation                                      |
+| :-------|:----------|:--------------------------------------------------|
+| RECORD  | A         | A records - IPv4 addresses.                       |
+| RECORD  | AAAA      | AAAA records - IPv6 addresses.                    |
+| FORWARD | HTTP      | HTTP-STATUS (301, 302, 307...) forwarding         |
+| FORWARD | REDIR     | DNS redir TXT based fowarding                     |
+| FORWARD | PARKED    | TXT containing ```parked```                       |
+| RECORD  | MX        | MX records                                        |
+| RECORD  | SPF       | ```v=spf``` in TXT and SPF type records.          |
+| RECORD  | NS        | Nameservers                                       |
+| RECORD  | PTR       | Reverse DNS lookup of the A & AAAA records        |
+| GUESS   | LOGIC     | Attempts to guess the host :)                     |
+| WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
+| CURL    | SSL CERT  | With and without insecure flag to check SSL       |
 
-  ### Secondary functions
-  ```checkcert``` can be used to display a bit more information about the SSL certificate.
+## Secondary functions
 
-   ```checkssl``` can be used to connect to the hostname using ```openssl``` protocol, displaying the certificate chain.
+These are supporting functions to the main script (no flag support)
+<pre lang="bash">checkcert</pre>
 
-## **Output and sanitazion of information**
+Add-on function that retrieves and displays TLS certificate details for the specified domain using curl. If the initial attempt fails, it retries without alterations to the output formatting and color-codes (asks the user to retry [Y/n])
 
-There are some hidden checks that happen during some of the checks, these include but are possibly not limited to:
+<pre lang="bash">checkssl</pre>
 
-Some of the functions sanitize the output in order to show only relevant information. Some of these checks includes the WHOIS lookup which accounts for a subdomain being input, WHOIS lookup where a secondary lookup is done if special paramaters are met. The reverse DNS lookup part also has rules that sanitizes the information if the result isn't relevant (in.addr.rpa, SOA).
+Add-on function that uses the openssl s_client command to connect to the specified domain over SSL/TLS on port 443 and displays the entire SSL/TLS certificate chain. Can be useful when you need that information for troubleshooting.
+
+<pre lang="bash">rdns</pre>
+
+Add-on function to reverse dns lookup the given domains A and AAAA record. The output lets you know the reporting server (PTR) or whether the result is Start of Authority (SOA).
+
+<kbd>
+  <img src="https://github.com/zhk3r/check/assets/37957791/0e34aeaa-84d7-4a8b-a7c8-2158f6d03bdd)">
+</kbd>
+
+### **Output and sanitazion of information**
+
+There are quite a few 'hidden' checks that happen during the script, it stores certain information in temporary files for use later. The logic is far from perfect, but for the most part in my own testing the output is sanitized OK. A lot of it in regards to reverse-dns lookups and registrar name conversions.
 
 ### **Dependencies**
 
-- dig
-- whois
-- openssl
-- curl
-- lolcat *(not strictly necessary, you can remove* ```| lolcat``` *from line 59)*
+> In order for the script to run you will need the following:
+
+| Name    | Command                        | Why
+| :-------| :------------------------------| :----------------------------------------|
+| python3 | ```sudo apt install python3``` | Used for reverse dns lookup logic        |
+| pip3    | ```suo install python-pip3```  | Used for (add-on) rdns lookup logic      |
+| pip3    | ```pip3 install tabulate```    | Used to put rdns info into a table       |
+| pip3    | ```pip3 install colorama```    | Used to color rdns lookups.              |
+| dig     | ```sudo apt install dig```     | Used for most dns commands               |
+| whois   | ```sudo apt install whois```   | Used to lookup registrar information     |
+| openssl | ```sudo apt install openssl``` | Used to test SSL connectivity            |
+| curl    | ```sudo apt install curl```    | Used to test SSL connectivity            |
+| lolcat  | ```sudo apt install lolcat```  | Used to color some output                |
+
+> You probably have most of these already, you could remove lolcat from line 120 if you so desire.
+
+#### Contribution
+My coworkers for input on the logic, filtering and output of the script <3
+
+#### License
+This project is licensed under Apache 2.0.
+
+#### Contact
+For questions or contributions, contact me wherever you can find me :)
