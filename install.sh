@@ -6,8 +6,9 @@ sudo apt update
 # Install dependencies with automatic 'yes' to prompts
 sudo apt install -y whois openssl curl lolcat python3 python3-pip
 
-# Install Python packages with pip3
-pip3 install tabulate colorama
+# Install pip3 packages with sudo for system-wide installation
+sudo pip3 install tabulate
+sudo pip3 install colorama
 
 # Define where to install the scripts
 install_dir="$HOME/check"
@@ -41,3 +42,6 @@ add_alias "$HOME/.bashrc"
 add_alias "$HOME/.zshrc"
 
 echo "Installation complete. Please restart your shell or source your .bashrc/.zshrc file."
+
+# Optional: Executing the default shell, you may comment out this line if not needed
+exec "$SHELL"
