@@ -88,22 +88,25 @@ check_registrar() {
 
 shopt -s nocasematch
 
-# Pattern to match nameserver to a service provider
 declare -A ns_host_patterns
 # KNOWN HOSTS - OTHER LARGE PROVIDERS
-ns_host_patterns["Cloudflare"]="cloudflare\(.net|com|org|net)"
+ns_host_patterns["Cloudflare"]="cloudflare\.(net|com|org)"
 ns_host_patterns["Amazon AWS"]="awsdns-|amzndns\.(co\.uk|com|net|org)"
 ns_host_patterns["Google Cloud DNS"]="googledomains\.com|google\.com$"
 ns_host_patterns["Microsoft Azure"]="azure-dns\.com"
 ns_host_patterns["GoDaddy"]="domaincontrol\.com|godaddy\.com$"
 ns_host_patterns["Netlify"]="nsone\.net"
-# KNOWN HOSTS - LOCAL PROVIDERS
+ns_host_patterns["NameSRS"]="dnsnode\.net"
+ns_host_patterns["Linpro"]="linpro\.net"
+# KNOWN HOSTS - OUR BRANDS
 ns_host_patterns["SYSE"]="syse\.no"
-ns_host_patterns["Digital Garden"]="uniweb\.no|fastname\.no|ns01\.no\.brand\.one\.com|ns02\.no\.brand\.one\.com"
+ns_host_patterns["Legacy ProISP"]="ns1.proisp.no|ns2.proisp.no"
+ns_host_patterns["ProISP"]="ns01.proisp.no|ns02.proisp.no"
+ns_host_patterns["Digital Garden"]="uniweb\.no|fastname\.no|\.no\.brand\.one\.com|ns02\.no\.brand\.one\.com"
 ns_host_patterns["One.com"]="one-(net|com|org)|one-dns\.(net|com|org)"
-ns_host_patterns["Domeneshop"]="hyp\.net$"
-ns_host_patterns["Netclient Services"]="netclient\(.no|net|com|org)"
-
+# KNOWN HOSTS - LOCAL PROVIDERS
+ns_host_patterns["Domeneshop"]="hyp.net"
+ns_host_patterns["Netclient Services"]="netclient\.(no|net|com|org)"
 
 shopt -u nocasematch
 
@@ -113,23 +116,30 @@ check_nameserver() {
     local ns_results=($(dig ns "$domain" +short))
     if [ -z "$ns_results" ]; then
         # Don't print anything if no nameservers are found
-        shopt -u nocasematch
         return 1
     fi
 
-    local matched_service=""
+    local matched_services=()
     for ns in "${ns_results[@]}"; do
         for service in "${!ns_host_patterns[@]}"; do
             local pattern="${ns_host_patterns[$service]}"
             if [[ "$ns" =~ $pattern ]]; then
-                matched_service=$service
-                break 2 # Break out of both loops
+                # Add to matched services if not already included
+                if [[ ! " ${matched_services[*]} " =~ " $service " ]]; then
+                    matched_services+=("$service")
+                fi
+                break # Break out of inner loop
             fi
         done
     done
 
-    if [ -n "$matched_service" ]; then
-        echo -e "${YELLOW}DNS administration:${RESET}" "${GREEN}${matched_service}.${RESET}"
+    if [ ${#matched_services[@]} -gt 0 ]; then
+        # Concatenate matched services with "&"
+        local services_str="${matched_services[0]}"
+        for i in "${matched_services[@]:1}"; do
+            services_str+=" ${YELLOW}&${RESET} ${MAGENTA}$i${RESET}"
+        done
+        echo -e "${YELLOW}Administration:${RESET}" "${GREEN}$services_str.${RESET}"
     fi
 }
 
