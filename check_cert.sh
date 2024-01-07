@@ -30,12 +30,13 @@ check-cert() {
         tls_info=$(curl --insecure -vvI "https://$1" 2>&1)
         
         if [ -z "$tls_info" ]; then
-            echo -e "${RED}Failed to establish a TLS connection even on retry. Check the domain or try again.${RESET}"
+        echo -e "${RED}Failed to establish a TLS connection even on retry. Check the domain or try again.${RESET}"
             return 1
         fi
         # Print the TLS connection information after retry
         echo -e "$tls_info"
-        echo "${RED}Still nothing? There's likely not a SSL certificate on the server!${RESET}"
+        echo -e "${RED}Still nothing? There's likely not a SSL certificate on the server!${RESET}"
+        echo -e "${MAGENTA}You can see the certificate chain using the -ssl flag${RESET}"
     else
         # Print the TLS connection information if the initial check succeeded
         echo -e "$tls_info"
