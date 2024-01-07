@@ -6,7 +6,6 @@ GREEN="\033[0;32m"
 YELLOW="\033[0;33m"
 BLUE="\033[0;34m"
 MAGENTA="\033[0;35m"
-CYAN="\033[0;36m"
 RESET="\033[0m"
 
     if [ -z "$1" ]; then
@@ -25,7 +24,7 @@ echo -e "${YELLOW}${1^^} HOSTING RELEVANT INFORMATION${RESET}"
 echo -e "${MAGENTA}------------------------------------------${RESET}"
 
     # A RECORD(S) 
-    echo -e "${YELLOW}A RECORD(S)${RESET}" "${CYAN}* IPv4 adresses${RESET}"
+    echo -e "${YELLOW}A RECORD(S)${RESET}" "${BLUE}* IPv4 adresses${RESET}"
     a_result=$(dig a "$1" +short)
     if [ -z "$a_result" ]; then
         echo -e "${RED}No A record found for $1${RESET}"
@@ -43,7 +42,7 @@ echo -e "${MAGENTA}------------------------------------------${RESET}"
     # AAAA RECORD(S)
     aaaa_result=$(dig aaaa "$1" +short)
     if [[ -n "$aaaa_result" && ! $aaaa_result =~ (empty label) ]]; then
-        echo -e "${YELLOW}AAAA RECORD(S)${RESET}" "${CYAN}* IPv6 adresses${RESET}"
+        echo -e "${YELLOW}AAAA RECORD(S)${RESET}" "${BLUE}* IPv6 adresses${RESET}"
         echo -e "${GREEN}$aaaa_result${RESET}"
         # Store AAAA record result in a file
         echo "$aaaa_result" | tr ' ' '\n' > aaaa_results.txt
@@ -55,28 +54,28 @@ echo -e "${MAGENTA}------------------------------------------${RESET}"
     # Check for http-based status-forwarding
     case "$http_status" in
         301|302|303|307|308)
-            echo -e "${YELLOW}WEB FORWARDING RECORD (HTTP $http_status)${RESET}" "${CYAN}* Forwarding rules! :)${RESET}"
+            echo -e "${YELLOW}WEB FORWARDING RECORD (HTTP $http_status)${RESET}" "${BLUE}* Forwarding rules! :)${RESET}"
             echo -e "${GREEN}The domain $1 is forwarding with HTTP $http_status status.${RESET}"
             # Check for forwarding from root to www
             if [[ "$redirect_url" =~ https://www.$1/? ]]; then
-                echo -e "${GREEN}The domain is forwarding from $1 --> www.$1${RESET}" "${CYAN}* Forwarding rules! :)${RESET}"
+                echo -e "${GREEN}The domain is forwarding from $1 --> www.$1${RESET}" "${BLUE}* Forwarding rules! :)${RESET}"
             fi
     esac
     # Check for _redir TXT forwarding
     txt_redir_result=$(dig +short txt "_redir.$1")
     if [ -n "$txt_redir_result" ]; then
-        echo -e "${YELLOW}WEB FORWARDING RECORD (_REDIR)${RESET}" "${CYAN}* Forwarding rules! :)${RESET}"
+        echo -e "${YELLOW}WEB FORWARDING RECORD (_REDIR)${RESET}" "${BLUE}* Forwarding rules! :)${RESET}"
         echo -e "${GREEN}$txt_redir_result${RESET}"
     fi
     # Check for PARKED TXT records (Can probably flesh this one out)
     parked_txt_record=$(dig +short txt "$1" | grep -i "^\"parked")
     if [ -n "$parked_txt_record" ]; then
-        echo -e "${YELLOW}PARKED DOMAIN${RESET}" "${CYAN}* Probably not doing much :(${RESET}"
+        echo -e "${YELLOW}PARKED DOMAIN${RESET}" "${BLUE}* Probably not doing much :(${RESET}"
         echo -e "${GREEN}The domain $1 looks like it's parked${RESET}"
     fi
 
     # NAMESERVERS
-    echo -e "${YELLOW}NAMESERVERS${RESET}" "${CYAN}* Domain is administered here${RESET}"
+    echo -e "${YELLOW}NAMESERVERS${RESET}" "${BLUE}* Domain is administered here${RESET}"
     ns_result=$(dig ns "$1" +short)
     if [ -z "$ns_result" ]; then
         echo -e "${RED}No nameservers found for $1${RESET}"
@@ -86,7 +85,7 @@ echo -e "${MAGENTA}------------------------------------------${RESET}"
 
     # REVERSE DNS LOOKUP (Python)
     python3 ~/check/reverse-dns-lookup.py
-    
+
     # HOST GUESSER (Python)
     python3 ~/check/hostguess.py "$1"
 
@@ -112,7 +111,9 @@ check_ssl_certificate() {
 }
 
     # SSL CERTIFICATE
-    echo -e "${YELLOW}SSL CERTIFICATE INFORMATION${RESET}" "${CYAN}* Secure Socket Layer${RESET}"
+    echo -e "${MAGENTA}------------------------------------------${RESET}"
+    echo -e "${YELLOW}${1^^} SSL CERTIFICATE INFORMATION${RESET}"
+    echo -e "${MAGENTA}------------------------------------------${RESET}"
     check_ssl_certificate "$1"
 
     # DELETE GENERATED FILES
