@@ -13,7 +13,7 @@ RESET="\033[0m"
 declare -A email_host_patterns
 email_host_patterns["cPanel or smth"]="*$1"
 email_host_patterns["MarkMonitor"]="*.pphosted.com"
-email_host_patterns["Google Workspaces"]=".*google.com|.GOOGLE.COM"
+email_host_patterns["Google Workspaces"]=".*google.com|*.GOOGLE.COM"
 email_host_patterns["Microsoft 365"]=".*outlook.com"
 email_host_patterns["Yahoo Mail"]=".*yahoodns.net"
 email_host_patterns["Cloudflare"]="*cloudflare.net|*mxrecord.io"
