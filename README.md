@@ -9,7 +9,7 @@ Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and 
 ## **Installation and setup**
 
 <pre lang="bash">
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/testing/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/testing/install.sh)"
 </pre>
 
 | For ease of use                                      | To something like                                     |
