@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the GitHub repository URL
-GITHUB_REPO="https://github.com/zhk3r/check.git"
+GITHUB_REPO="https://github.com/zhk3r/check/tree/testing"
 # Define the directory to clone the repository into
 INSTALL_DIR="$HOME/check"
 # Clone the GitHub repository
