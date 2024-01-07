@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Update package lists
+sudo apt update -y
+
+# Install dependencies
+sudo apt install -y whois openssl curl lolcat
+
 # Define where to install the scripts
 install_dir="$HOME/check"
 
