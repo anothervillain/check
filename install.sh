@@ -27,20 +27,6 @@ for file in "${files[@]}"; do
     chmod +x "$install_dir/$file"
 done
 
-# Add an alias for 'check.sh' in .bashrc and .zshrc
-add_alias() {
-    local shell_rc="$1"
-    if [ -f "$shell_rc" ]; then
-        if ! grep -q "alias check=\"$install_dir/check.sh\"" "$shell_rc"; then
-            echo "Adding alias to $shell_rc..."
-            echo "alias check=\"$install_dir/check.sh\"" >> "$shell_rc"
-        fi
-    fi
-}
-
-add_alias "$HOME/.bashrc"
-add_alias "$HOME/.zshrc"
-
 echo "Installation complete. Please restart your shell or source your .bashrc/.zshrc file."
 
 # Optional: Executing the default shell, you may comment out this line if not needed
