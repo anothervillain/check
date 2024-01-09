@@ -4,7 +4,7 @@
 sudo apt update
 
 # Install dependencies with automatic 'yes' to prompts
-sudo apt install -y whois openssl dig curl lolcat grc boxes python3 python3-pip
+sudo apt install -y whois openssl dig curl lolcat grc boxes zsh python3 python3-pip
 
 # Install pip3 packages with sudo for system-wide installation
 sudo pip3 install tabulate
@@ -31,4 +31,4 @@ echo "Installation complete. Please restart your shell or source your .bashrc/.z
 echo "For ease of use, add an an alias for check.sh:"
 echo "Example: alias check='~/check/check.sh"
 
-exec "$SHELL"
+exec zsh
