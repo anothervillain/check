@@ -15,7 +15,7 @@ declare -A email_providers
 #email_providers["cPanel or similar (self hosted even)"]=".*domain\.com" # Broken
 email_providers["MarkMonitor"]=".*pphosted\.com"
 email_providers["Google Workspaces"]=".*\google\.com"
-email_providers["Microsoft 365"]=".*outlook\.com"
+email_providers["Microsoft 365"]=".*\.outlook\.com"
 email_providers["Yahoo Mail"]=".*yahoodns\.net"
 email_providers["Cloudflare"]=".*cloudflare\.net|.*mxrecord\.io"
 # Known brands: Our brands
@@ -52,29 +52,29 @@ guess_email_host() {
 # Enable case-insensitive pattern matching
 shopt -s nocasematch
 # Colorize known secondary senders in SPF record
-declare -A spf_mass_senderss
+declare -A spf_mass_senders
 # Patterns for secondary senders in SPF records
-spf_mass_senderss["ActiveCampaign"]="include:spf.activecampaign.com"
-spf_mass_senderss["Amazon SES"]="include:amazonses.com"
-spf_mass_senderss["AWeber"]="include:send.aweber.com"
-spf_mass_senderss["Campaign Monitor"]="include:_spf.createsend.com"
-spf_mass_senderss["Constant Contact"]="include:spf.constantcontact.com"
-spf_mass_senderss["GetResponse"]="include:spf.getresponse.com"
-spf_mass_senderss["HubSpot"]="include:_spf\.hubspot\.com|include:.*\.hubspotemail\.net"
-spf_mass_senderss["Klaviyo"]="include:send.klaviyo.com"
-spf_mass_senderss["MailChimp"]="include:spf\.mandrillapp\.com|include:servers\.mcsv\.net"
-spf_mass_senderss["MailerLite"]="include:_spf.mailerlite.com"
-spf_mass_senderss["Mailgun"]="include:mailgun.org"
-spf_mass_senderss["Mandrill"]="include:spf.mandrillapp.com"
-spf_mass_senderss["Mimecast"]="include:_netblocks.mimecast.com"
-spf_mass_senderss["Moosend"]="include:spf.moosend.com"
-spf_mass_senderss["Postmark"]="include:spf.mtasv.net"
-spf_mass_senderss["Rackspace"]="include:emailsrvr.com"
-spf_mass_senderss["Salesforce"]="include:_spf.salesforce.com"
-spf_mass_senderss["SendGrid"]="include:sendgrid.net"
-spf_mass_senderss["SendinBlue"]="include:spf.sendinblue.com"
-spf_mass_senderss["Zendesk"]="include:mail\.zendesk\.com|include:smtp\.zendesk\.com"
-spf_mass_senderss["Zoho"]="include:zoho.eu"
+spf_mass_senders["ActiveCampaign"]="include:spf.activecampaign.com"
+spf_mass_senders["Amazon SES"]="include:amazonses.com"
+spf_mass_senders["AWeber"]="include:send.aweber.com"
+spf_mass_senders["Campaign Monitor"]="include:_spf.createsend.com"
+spf_mass_senders["Constant Contact"]="include:spf.constantcontact.com"
+spf_mass_senders["GetResponse"]="include:spf.getresponse.com"
+spf_mass_senders["HubSpot"]="include:_spf\.hubspot\.com|include:.*\.hubspotemail\.net"
+spf_mass_senders["Klaviyo"]="include:send.klaviyo.com"
+spf_mass_senders["MailChimp"]="include:spf\.mandrillapp\.com|include:servers\.mcsv\.net"
+spf_mass_senders["MailerLite"]="include:_spf.mailerlite.com"
+spf_mass_senders["Mailgun"]="include:mailgun.org"
+spf_mass_senders["Mandrill"]="include:spf.mandrillapp.com"
+spf_mass_senders["Mimecast"]="include:_netblocks.mimecast.com"
+spf_mass_senders["Moosend"]="include:spf.moosend.com"
+spf_mass_senders["Postmark"]="include:spf.mtasv.net"
+spf_mass_senders["Rackspace"]="include:emailsrvr.com"
+spf_mass_senders["Salesforce"]="include:_spf.salesforce.com"
+spf_mass_senders["SendGrid"]="include:sendgrid.net"
+spf_mass_senders["SendinBlue"]="include:spf.sendinblue.com"
+spf_mass_senders["Zendesk"]="include:mail\.zendesk\.com|include:smtp\.zendesk\.com"
+spf_mass_senders["Zoho"]="include:zoho.eu"
 
 # Disabling  case-sensitivity again
 shopt -u nocasematch
@@ -111,8 +111,8 @@ check_secondary_senders() {
         done
         # Check for secondary senders if not a primary sender
         if [ "$match_found" = false ]; then
-            for sender in "${!spf_mass_senderss[@]}"; do
-                if [[ "$part" =~ ${spf_mass_senderss[$sender]} ]]; then
+            for sender in "${!spf_mass_senders[@]}"; do
+                if [[ "$part" =~ ${spf_mass_senders[$sender]} ]]; then
                     colored_spf_record+="${MAGENTA}$part${RESET} "
                     match_found=true
                     break
