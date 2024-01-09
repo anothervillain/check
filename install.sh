@@ -31,4 +31,4 @@ echo "Installation complete. Please restart your shell or source your .bashrc/.z
 echo "For ease of use, add an an alias for check.sh:"
 echo "Example: alias check='~/check/check.sh"
 
-exec zsh
+exec $SHELL
