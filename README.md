@@ -26,14 +26,14 @@ if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the scri
 </details>
 <details>
   <summary>Performs WHOIS to identify Registrar</summary>
-will show either Registry (White Label) or Registrar, for .no domains there's logic that converts REG-HANDLE == REG-NAME.
+will show the name of either the Registry (White Label) or Registrar. For .no domains there's logic that converts REG-HANDLE into REG-NAMES appended in [brackets].
 </details>
 
 **This information is cached for 15 seconds so you can -flag for further information:**
 
 ```check domain.tld -all```
 
-1) Performs the preliminary tests to see if the domain is valid
+1) Performs preliminary tests to see if the domain is valid
 2) Pulls the information from check_mail.sh (-mail flag)
 3) Pulls the information from check_host.sh (-host flag)
 
