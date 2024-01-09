@@ -47,7 +47,7 @@ header_printed = False
 def print_relevant_answers(ip_addresses, record_type, domain):
     global soa_message_printed, header_printed
     if not header_printed:
-        print(f"{YELLOW}REVERSE DNS LOOKUP{RESET} {CYAN}* PTR or SOA{RESET}")
+        print(f"{YELLOW}REVERSE DNS LOOKUP{RESET}")
         header_printed = True
 
     ptr_found_any = False
