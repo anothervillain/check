@@ -16,7 +16,7 @@ check_domain() {
     local domain=$1
     # Check for invalid domain format
     if echo "$domain" | grep -q '\.\.'; then
-        echo -e "${RED}Invalid domain format, fat fingers?!${RESET}"
+        echo -e "${RED}Invalid domain format, fat fingers?${RESET}"
         return 1
     fi
     # Check domain existence and quarantine status
@@ -27,10 +27,10 @@ check_domain() {
         echo -e "${YELLOW}Ensure you wrote${RESET}" "${CYAN}$domain${RESET}" "${YELLOW}correctly!${RESET}"
         return 1
     elif echo "$whois_status" | grep -q 'No match'; then
-        echo -e "${YELLOW}Domain${RESET}" "${BLUE}$domain${RESET}" "${YELLOW}is in quarantine.${RESET}"
+        echo -e "${YELLOW}Domain${RESET}" "${BLUE}$domain${RESET}" "${YELLOW}is in${RESET}" "${MAGENTA}QUARANTINE${RESET}"
         return 1
     else
-        echo -e "${YELLOW}Valid:${RESET}" "${CYAN}$domain${RESET}" "${GREEN}looks to be registered.${RESET}"
+        echo -e "${YELLOW}The domain${RESET}" "${CYAN}$domain${RESET}" "${GREEN}exists.${RESET}"
     fi
     while (( "$#" )); do
         case "$1" in
@@ -81,37 +81,36 @@ check_registrar() {
     if [ -n "$registrar_result" ]; then
         echo -e "${YELLOW}Registrar:${RESET}" "${GREEN}$registrar_result${RESET}"
     else
-        echo -e "${RED}No Registrar information found for $domain${RESET}"
-        echo -e "${YELLOW}Perform${RESET} whois $domain ${YELLOW}instead!${RESET}"
+        echo -e "${RED}Could not determine registrar for $domain.${RESET}" "${YELLOW}Perform${RESET} whois $domain ${YELLOW}instead!${RESET}"
     fi
 }
 
+# Disable case sensitivity
 shopt -s nocasematch
-
-declare -A ns_host_patterns
-# KNOWN HOSTS - OTHER LARGE PROVIDERS
-ns_host_patterns["Cloudflare"]="cloudflare\.(net|com|org)"
-ns_host_patterns["Amazon AWS"]="awsdns-|amzndns\.(co\.uk|com|net|org)"
-ns_host_patterns["Google Cloud DNS"]="googledomains\.com|google\.com$"
-ns_host_patterns["Microsoft Azure"]="azure-dns\.com"
-ns_host_patterns["GoDaddy"]="domaincontrol\.com|godaddy\.com$"
-ns_host_patterns["Netlify"]="nsone\.net"
-ns_host_patterns["NameSRS"]="dnsnode\.net"
-ns_host_patterns["Linpro"]="linpro\.net"
-# KNOWN HOSTS - OUR BRANDS
-ns_host_patterns["SYSE"]="syse\.no"
-ns_host_patterns["Legacy ProISP"]="ns1.proisp.no|ns2.proisp.no"
-ns_host_patterns["ProISP"]="ns01.proisp.no|ns02.proisp.no"
-ns_host_patterns["Digital Garden"]="uniweb\.no|fastname\.no|\.no\.brand\.one\.com|ns02\.no\.brand\.one\.com"
-ns_host_patterns["One.com"]="one-(net|com|org)|one-dns\.(net|com|org)"
-# KNOWN HOSTS - LOCAL PROVIDERS
-ns_host_patterns["Domeneshop"]="hyp.net"
-ns_host_patterns["Netclient Services"]="netclient\.(no|net|com|org)"
-
+declare -A determine_dns
+# Known hosts: Global
+determine_dns["Cloudflare"]="cloudflare\.(net|com|org)"
+determine_dns["Amazon AWS"]="awsdns-|amzndns\.(co\.uk|com|net|org)"
+determine_dns["Google Cloud DNS"]="googledomains\.com|google\.com$"
+determine_dns["Microsoft Azure"]="azure-dns\.com"
+determine_dns["GoDaddy"]="domaincontrol\.com|godaddy\.com$"
+determine_dns["Netlify"]="nsone\.net"
+determine_dns["NameSRS"]="dnsnode\.net"
+determine_dns["Linpro"]="linpro\.net"
+# Known hosts: Our brands
+determine_dns["SYSE"]="syse\.no"
+determine_dns["Legacy ProISP"]="ns1.proisp.no|ns2.proisp.no"
+determine_dns["ProISP"]="ns01.proisp.no|ns02.proisp.no"
+determine_dns["Digital Garden"]="uniweb\.no|fastname\.no|\.no\.brand\.one\.com|ns02\.no\.brand\.one\.com"
+determine_dns["One.com"]="one-(net|com|org)|one-dns\.(net|com|org)"
+# Known hosts:Local providers
+determine_dns["Domeneshop"]="hyp.net"
+determine_dns["Netclient Services"]="netclient\.(no|net|com|org)"
+#Enable case sensitivity
 shopt -u nocasematch
 
-# Define the check_nameserver function
-check_nameserver() {
+# Function to guess DNS administration based on NS conversion to company-name
+guess_dns() {
     local domain=$1
     local ns_results=($(dig ns "$domain" +short))
     if [ -z "$ns_results" ]; then
@@ -121,8 +120,8 @@ check_nameserver() {
 
     local matched_services=()
     for ns in "${ns_results[@]}"; do
-        for service in "${!ns_host_patterns[@]}"; do
-            local pattern="${ns_host_patterns[$service]}"
+        for service in "${!determine_dns[@]}"; do
+            local pattern="${determine_dns[$service]}"
             if [[ "$ns" =~ $pattern ]]; then
                 # Add to matched services if not already included
                 if [[ ! " ${matched_services[*]} " =~ " $service " ]]; then
@@ -134,12 +133,24 @@ check_nameserver() {
     done
 
     if [ ${#matched_services[@]} -gt 0 ]; then
-        # Concatenate matched services with "&"
-        local services_str="${matched_services[0]}"
-        for i in "${matched_services[@]:1}"; do
-            services_str+=" ${YELLOW}&${RESET} ${MAGENTA}$i${RESET}"
+        # Construct the service string with different colors
+        local services_str=""
+        local color=$BLUE  # Start with blue for the first service
+        for i in "${matched_services[@]}"; do
+            services_str+="${color}$i${RESET}"
+            color=$CYAN  # Change color to cyan for subsequent services
+            # Add separator if not the last service
+            if [ "$i" != "${matched_services[-1]}" ]; then
+                services_str+=" ${YELLOW}&${RESET} "
+            fi
         done
-        echo -e "${YELLOW}Administration:${RESET}" "${GREEN}$services_str.${RESET}"
+
+        # Append "Redundancy?" in green if more than one service is matched
+        if [ ${#matched_services[@]} -gt 1 ]; then
+            services_str+=" ${GREEN}(Multiple NS. Reduntant maybe)${RESET}"
+        fi
+
+        echo -e "${YELLOW}DNS administration:${RESET}" "$services_str."
     fi
 }
 
@@ -168,30 +179,28 @@ record_last_run() {
     echo "$domain $(date +%s)" > "$tmp_file"
 }
 
-# Function to check if the last run can be skipped
+# Function to check if registrar info should be pulled again
 can_skip_checks() {
     local domain=$1
-    local time_frame=15 # 15 seconds
+    local time_frame=10 # 10 seconds
 
     if [[ -f "$tmp_file" ]]; then
         read -r last_domain last_time < "$tmp_file"
         local current_time=$(date +%s)
         if [[ "$last_domain" == "$domain" && $((current_time - last_time)) -lt $time_frame ]]; then
-            return 0 # 0 means yes, can skip
+            return 0
         fi
     fi
-    return 1 # 1 means no, cannot skip
+    return 1
 }
 
 check() {
     local domain=$1
-
     if [[ -z "$domain" ]]; then
         echo -e "${YELLOW}Usage:${RESET}" "${GREEN}check domain.tld${RESET}" "${MAGENTA}-flag${RESET}"
         echo -e "${YELLOW}For detailed intstructions type:${RESET}" "${CYAN}check -help${RESET}"
         return
     fi
-
     if [[ "$domain" == "-help" ]]; then
         show_help
         return
@@ -199,9 +208,10 @@ check() {
 
     local is_domain_valid=true
 
-    # Perform checks only if the domain is not a flag
+    # Perform checks only if the domain is not flagged
     if ! [[ "$domain" =~ ^- ]]; then
         if ! $(can_skip_checks "$domain"); then
+
             echo -e "${MAGENTA}------------------------------------------${RESET}"
             echo -e "${YELLOW}${domain^^} REGISTRATION INFORMATION${RESET}"
             echo -e "${MAGENTA}------------------------------------------${RESET}"
@@ -210,7 +220,7 @@ check() {
                 is_domain_valid=false
             else
                 check_registrar "$domain"
-                check_nameserver "$domain"
+                guess_dns "$domain"
                 record_last_run "$domain"
             fi
         fi
@@ -227,13 +237,13 @@ check() {
                     call_script "mail" "$domain"
                     call_script "host" "$domain"
                 else
-                    echo -e "${RED}Error: Domain not valid or unsupported flag $flag.${RESET}"
+                    echo -e "${RED}Error: Not a valid domain $domain or an unsupported flag $flag.${RESET}"
                 fi
                 ;;
             -host|--host|-h)
                 [ $is_domain_valid == true ] && call_script "host" "$domain"
                 ;;
-            -mail|--mail|-m|-e)
+            -mail|--mail|-m|-email)
                 [ $is_domain_valid == true ] && call_script "mail" "$domain"
                 ;;
             -cert|--cert|-c)
