@@ -69,9 +69,9 @@ Connects to the domain using openssl protocol to display the full certificate ch
 
 This is a different Python script from the one used within check_host.sh (-host flag) -- It uses tabulate and colorama for aesthetics. This flag is useful when trying to troubleshoot PTR and SOA connectivity issues in terms of hosting.
 
-<kbd>
-  <img src="https://github.com/zhk3r/check/assets/37957791/0e34aeaa-84d7-4a8b-a7c8-2158f6d03bdd)">
-</kbd>
+```check domain.tld -help```
+
+Shows the help section :)
 
 ### **Output and sanitazion of information**
 
