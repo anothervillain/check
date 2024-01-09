@@ -12,6 +12,10 @@ Usage: ```check domain.tld``` to quickly lookup domain info like DNS, WHOIS and 
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/testing/install.sh)"
 </pre>
 
+<pre lang="bash">
+alias check='~/check/check.sh'
+</pre>
+
 ## **Lookup relevant domain information**
 
 ```check domain.tld``` will first:
