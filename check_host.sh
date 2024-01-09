@@ -56,7 +56,7 @@ echo -e "${MAGENTA}------------------------------------------${RESET}"
         301|302|303|307|308)
             echo -e "${YELLOW}WEB FORWARDING RECORD (HTTP $http_status)${RESET}"
             echo -e "${GREEN}The domain $1 is forwarding with HTTP $http_status status.${RESET}"
-            # Check for forwarding from root to www
+            # Check for forwarding from root to www $domain
             if [[ "$redirect_url" =~ https://www.$1/? ]]; then
                 echo -e "${GREEN}The domain is forwarding from $1 --> www.$1${RESET}"
             fi
@@ -67,21 +67,31 @@ echo -e "${MAGENTA}------------------------------------------${RESET}"
         echo -e "${YELLOW}WEB FORWARDING RECORD (_REDIR)${RESET}" 
         echo -e "${GREEN}$txt_redir_result${RESET}"
     fi
-    # Check for PARKED TXT records (Can probably flesh this one out)
+    # Check for PARKED TXT records ## NOT FLESHED OUT. WORKS POORLY.
     parked_txt_record=$(dig +short txt "$1" | grep -i "^\"parked")
     if [ -n "$parked_txt_record" ]; then
         echo -e "${YELLOW}PARKED DOMAIN${RESET}"
         echo -e "${GREEN}The domain $1 looks like it's parked${RESET}"
     fi
 
-    # NAMESERVERS
-    echo -e "${YELLOW}NAMESERVERS${RESET}"
-    ns_result=$(dig ns "$1" +short)
-    if [ -z "$ns_result" ]; then
-        echo -e "${RED}No nameservers found for $1${RESET}"
-    else
-        echo -e "${GREEN}$ns_result${RESET}"
-    fi
+# NAMESERVERS
+echo -e "${YELLOW}NAMESERVERS${RESET}"
+ns_result=$(dig ns "$1" +noall +answer | awk '$4=="NS" {print $5}')
+if [ -z "$ns_result" ]; then
+    echo -e "${RED}No nameservers found for $1${RESET}"
+else
+    while read -r ns; do
+        # Fetch the IP address for each nameserver
+        ip=$(dig +short "$ns")
+        if [ -z "$ip" ]; then
+            # Output the nameserver without IP (IP not found)
+            echo -e "${GREEN}${ns}${RESET}"
+        else
+            # Output the nameserver with its IP
+            echo -e "${GREEN}${ns} ${MAGENTA}${ip}${RESET}"
+        fi
+    done <<< "$ns_result"
+fi
 
     # REVERSE DNS LOOKUP (Python)
     python3 ~/check/reverse-dns-lookup.py
@@ -116,5 +126,5 @@ check_ssl_certificate() {
     echo -e "${MAGENTA}------------------------------------------${RESET}"
     check_ssl_certificate "$1"
 
-    # DELETE GENERATED FILES
+    # DELETE GENERATED FILES OR USE IN .PY SCRIPTS | NO CACHE BABE
     rm -rf "current_domain.txt" "a_results.txt" "aaaa_results.txt"
