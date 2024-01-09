@@ -31,14 +31,6 @@ will show the name of either the Registry (White Label) or Registrar. For .no do
 
 **This information is cached for 15 seconds so you can -flag for further information:**
 
-```check domain.tld -all```
-
-1) Performs preliminary tests to see if the domain is valid
-2) Pulls the information from check_mail.sh (-mail flag)
-3) Pulls the information from check_host.sh (-host flag)
-
-**This is very close to the main branch version of ```check```**
-
 ```check domain.tld -mail```
 
 1) MX records.
@@ -68,6 +60,14 @@ Connects to the domain using openssl protocol to display the full certificate ch
 ```check domain.tld -rdns```
 
 This is a different Python script from the one used within check_host.sh (-host flag) -- It uses tabulate and colorama for aesthetics. This flag is useful when trying to troubleshoot PTR and SOA connectivity issues in terms of hosting.
+
+```check domain.tld -all```
+
+1) Performs preliminary tests to see if the domain is valid
+2) Pulls the information from check_mail.sh (-mail flag)
+3) Pulls the information from check_host.sh (-host flag)
+
+**This is very close to the main branch version of ```check```**
 
 ```check domain.tld -help```
 
