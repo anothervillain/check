@@ -26,7 +26,7 @@ if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the scri
 </details>
 <details>
   <summary>Performs WHOIS to identify Registrar</summary>
-will show either Registry (White Label) or Registrar (.no) with some logic to convert REG-HANDLE == REG-NAME.
+will show either Registry (White Label) or Registrar, for .no domains there's logic that converts REG-HANDLE == REG-NAME.
 </details>
 
 **This information is cached for 15 seconds so you can -flag for further information:**
