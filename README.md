@@ -24,38 +24,50 @@ this status indicates that the domain does not exist, the script will stop here.
   <summary>Check if the domain is in QUARANTINE</summary>
 if the domain has 'status: NXDOMAIN' and SOA starts at 'charm.norid.no' the script will whois the domain and look for "No match" - if that string isn't found the script will report the domain as in QUARANTINE.
 </details>
+<details>
+  <summary>Performs WHOIS to identify Registrar</summary>
+will show either Registry (White Label) or Registrar (.no) with some logic to convert REG-HANDLE == REG-NAME.
+</details>
 
-- [x] **Passing both checks lets the script look for:**
+**This information is cached for 15 seconds so you can -flag for further information:**
 
-| What    | Content   |  Explanation                                      |
-| :-------|:----------|:--------------------------------------------------|
-| RECORD  | A         | A records - IPv4 addresses.                       |
-| RECORD  | AAAA      | AAAA records - IPv6 addresses.                    |
-| FORWARD | HTTP      | HTTP-STATUS (301, 302, 307...) forwarding         |
-| FORWARD | REDIR     | DNS redir TXT based fowarding                     |
-| FORWARD | PARKED    | TXT containing ```parked```                       |
-| RECORD  | MX        | MX records                                        |
-| RECORD  | SPF       | ```v=spf``` in TXT and SPF type records.          |
-| RECORD  | NS        | Nameservers                                       |
-| RECORD  | PTR       | Reverse DNS lookup of the A & AAAA records        |
-| GUESS   | LOGIC     | Attempts to guess the host :)                     |
-| WHOIS   | REGISTRAR | WHOIS to pull the registrar name                  |
-| CURL    | SSL CERT  | With and without insecure flag to check SSL       |
+```check domain.tld -all```
 
-## Secondary functions
+1) Performs the preliminary tests to see if the domain is valid
+2) Pulls the information from check_mail.sh (-mail flag)
+3) Pulls the information from check_host.sh (-host flag)
 
-These are supporting functions to the main script (no flag support)
-<pre lang="bash">checkcert</pre>
+**This is very close to the main branch version of ```check```**
 
-Add-on function that retrieves and displays TLS certificate details for the specified domain using curl. If the initial attempt fails, it retries without alterations to the output formatting and color-codes (asks the user to retry [Y/n])
+```check domain.tld -mail```
 
-<pre lang="bash">checkssl</pre>
+1) MX records.
+2) SPF records (with coloring of known hosts vs mass-senders).
+3) DMARC and DKIM records.
 
-Add-on function that uses the openssl s_client command to connect to the specified domain over SSL/TLS on port 443 and displays the entire SSL/TLS certificate chain. Can be useful when you need that information for troubleshooting.
+Based on the found information the script will tell yoy the host or **guess** the email host.
 
-<pre lang="bash">rdns</pre>
+```check domain.tld -host```
 
-Add-on function to reverse dns lookup the given domains A and AAAA record. The output lets you know the reporting server (PTR) or whether the result is Start of Authority (SOA).
+1) A + AAAA records.
+2) Forwarding of all types HTTP-status and TXT redirects.
+3) Nameservers (and their corresponding IPv4 adresses).
+4) Reverse DNS lookup of all found A + AAAA records.
+5) Modified SSL output displaying CN, start & expiry and issuer.
+
+Based on the found information the script will either tell you the host or **guess** the hosting provider.
+
+```check domain.tld -cert```
+
+Connects to the domain using curl (secure & insecure flags) to display TLS/SSL information. There's a fair amount of output sanitation, so if the connection fails it automatically retries without any modified output. If the connection fails without any modifications, a message will be printed saying there's no SSL certificate available.
+
+```check domain.tld -ssl```
+
+Connects to the domain using openssl protocol to display the full certificate chain. The script will finish the handshake immediately after making the connection. Some of the output is colored, but it's mostly just for troubleshooting SSL issues.
+
+```check domain.tld -rdns```
+
+This is a different Python script from the one used within check_host.sh (-host flag) -- It uses tabulate and colorama for aesthetics. This flag is useful when trying to troubleshoot PTR and SOA connectivity issues in terms of hosting.
 
 <kbd>
   <img src="https://github.com/zhk3r/check/assets/37957791/0e34aeaa-84d7-4a8b-a7c8-2158f6d03bdd)">
@@ -81,7 +93,6 @@ There are quite a few 'hidden' checks that happen during the script, it stores c
 | curl    | ```sudo apt install curl```    | Used to test SSL connectivity            |
 | lolcat  | ```sudo apt install lolcat```  | Used to color some output                |
 
-> You probably have most of these already, you could remove lolcat from line 120 if you so desire.
 
 #### Contribution
 My coworkers for input on the logic, filtering and output of the script <3
