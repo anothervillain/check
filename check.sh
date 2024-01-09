@@ -91,7 +91,7 @@ declare -A determine_dns
 # Known hosts: Global
 determine_dns["Cloudflare"]="cloudflare\.(net|com|org)"
 determine_dns["Amazon AWS"]="awsdns-|amzndns\.(co\.uk|com|net|org)"
-determine_dns["Google Cloud DNS"]="googledomains\.com|google\.com$"
+determine_dns["Google Cloud DNS"]="googledomains\.com|google\.com"
 determine_dns["Microsoft Azure"]="azure-dns\.com"
 determine_dns["GoDaddy"]="domaincontrol\.com|godaddy\.com$"
 determine_dns["Netlify"]="nsone\.net"
