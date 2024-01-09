@@ -73,7 +73,7 @@ This is a different Python script from the one used within check_host.sh (-host 
 
 **This is very close to the main branch version of ```check```**
 
-```check domain.tld -help```
+```check -help```
 
 Shows the help section :)
 
