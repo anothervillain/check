@@ -17,20 +17,6 @@ for file in "${files[@]}"; do
     chmod +x "$install_dir/$file"
 done
 
-# Add the install directory to PATH in .bashrc and .zshrc
-update_path() {
-    local shell_rc="$1"
-    if [ -f "$shell_rc" ]; then
-        if ! grep -q "export PATH=\"$install_dir:\$PATH\"" "$shell_rc"; then
-            echo "Updating $shell_rc..."
-            echo "export PATH=\"$install_dir:\$PATH\"" >> "$shell_rc"
-        fi
-    fi
-}
-
-update_path "$HOME/.bashrc"
-update_path "$HOME/.zshrc"
-
 echo "Installation complete. Please restart your shell or source your .bashrc/.zshrc file."
 echo
 echo "Recommend you alias check.sh to check for simplicity"
