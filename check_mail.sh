@@ -29,7 +29,7 @@ email_providers["Domeneshop"]="*\.domeneshop\.no"
 shopt -u nocasematch
 
 # Function to guess email host based on MX records
-guess_email_host() {
+guess_email_provider() {
     local domain=$1
     local mx_records
     mx_records=$(dig mx "$domain" +short)
@@ -37,7 +37,7 @@ guess_email_host() {
 
     for host in "${!email_providers[@]}"; do
         if echo "$mx_records" | grep -Eiq "${email_providers[$host]}"; then
-            echo -e "${GREEN}Going to go with:${RESET}" "${CYAN}$host!${RESET}"
+            echo -e "${GREEN}Probably${RESET}" "${CYAN}$host.${RESET}"
             found=true
             break
         fi
@@ -89,7 +89,7 @@ spf_known_hosts["Google"]="_spf.google.com"
 spf_known_hosts["Microsoft"]="spf.protection.outlook.com"
 
 # Function to check and colorize primary and secondary senders in SPF
-check_secondary_senders() {
+check_spf() {
     local domain=$1
     local spf_record=$(dig +short txt $domain | grep 'v=spf1' | tr -d '"')
     local colored_spf_record=""
@@ -145,7 +145,7 @@ fi
 
 echo -e "${YELLOW}SPF RECORD${RESET}"
 # Logic found further up "check_secondary senders"
-check_secondary_senders "$1"
+check_spf "$1"
 
 # DMARC RECORD Check
 dmarc_result=$(dig +short txt "_dmarc.$1")
@@ -164,8 +164,8 @@ if [ -n "$dkim_results" ]; then
 fi
 
 # Guess email based on MX records
-email_guess=$(guess_email_host "$1")
+email_guess=$(guess_email_provider "$1")
 if [ -n "$email_guess" ]; then
-    echo -e "${YELLOW}EMAIL GUESSER${RESET}"
+    echo -e "${YELLOW}SERVICE PROVIDER GUESS${RESET}"
     echo -e "$email_guess"
 fi

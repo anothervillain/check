@@ -52,8 +52,8 @@ check_domain() {
             -rdns)
                 call_script "rdns" "$domain"
                 ;;
-            -dns)
-                call_script "dns_admin" "$domain"
+            -whois)
+                call_script "norid" "$domain"
         esac
         shift # Move to the next argument/flag
     done
@@ -182,7 +182,7 @@ record_last_run() {
 # Function to check if registrar info should be pulled again
 can_skip_checks() {
     local domain=$1
-    local time_frame=10 # 10 seconds
+    local time_frame=25
 
     if [[ -f "$tmp_file" ]]; then
         read -r last_domain last_time < "$tmp_file"
@@ -254,6 +254,9 @@ check() {
                 ;;
             -rdns|--rdns|-r)
                 [ $is_domain_valid == true ] && call_script "rdns" "$domain"
+                ;;
+            -whois|--whois|-w)
+                [ $is_domain_valid == true ] && call_script "norid" "$domain"
                 ;;
             *)
                 echo -e "${RED}Error: Unsupported flag $flag.${RESET}"
