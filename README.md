@@ -113,7 +113,7 @@ Shows the help section! :smile:
 
 There are quite a few 'hidden' checks that happen during the script, it stores certain information in temporary files for use later. The logic is far from perfect, but for the most part in my own testing the output is sanitized OK. A lot of it in regards to reverse-dns lookups and registrar name conversions.
 
-There are a lot of pre-defined patterns and arrays defined on top of a lot of 'hidden' checks that happen. The script will store information in temporary files for later use (especially in terms of reverse-dns-lookups), the logic is far from perfect but in most of my testing these functions 
+There are a lot of pre-defined patterns and arrays defined on top of a lot of 'hidden' checks that happen. The script will store information in temporary files for later use (especially in terms of reverse-dns-lookups), the logic is far from perfect but in most of my testing the responses from the script are accurate.
 
 ### **Dependencies**
 
