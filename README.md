@@ -72,7 +72,7 @@ Connects to the domain using openssl protocol to display the full certificate ch
 
 ```check domain.tld -rdns```
 
-This is a different Python script from the one used within check_host.sh (-host flag) -- It uses tabulate and colorama for aesthetics. This flag is useful when trying to troubleshoot PTR and SOA connectivity issues in terms of hosting.
+This is a different Python script from the one used within check_host.sh (-host flag) -- It uses tabulate and colorama for aesthetics. Uses mostly the same logic as the reverse-dns-lookup.py script.
 
 ```check domain.tld -whois```
 
@@ -109,7 +109,7 @@ Shows the help section! :smile:
   
 </details>
 
-### **Output and sanitazion of information**
+### **Output and sanitation of information**
 
 There are quite a few 'hidden' checks that happen during the script, it stores certain information in temporary files for use later. The logic is far from perfect, but for the most part in my own testing the output is sanitized OK. A lot of it in regards to reverse-dns lookups and registrar name conversions.
 
@@ -133,7 +133,7 @@ There are a lot of pre-defined patterns and arrays defined on top of a lot of 'h
 
 
 #### Contribution
-My coworkers for their input on the script and help with logic. ❤️
+My coworkers for their input on the script and help with logic ❤️
 
 #### License
 This project is licensed under Apache 2.0.
