@@ -4,7 +4,7 @@
 sudo apt update
 
 # Install dependencies with automatic 'yes' to prompts
-sudo apt install -y git whois openssl dig curl lolcat grc boxes python3 python3-pip
+sudo apt install -y git whois openssl dig curl grc boxes python3 python3-pip
 
 # Install pip3 packages with sudo for system-wide installation
 sudo pip3 install tabulate
