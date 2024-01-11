@@ -43,7 +43,7 @@ will show the name of either the Registry (White Label) or Registrar. For .no do
 based on the nameservers found for the domain (from a pre-defined pattern array) the script will tell you where the domain is managed.
 </details>
 
-**This information is cached for 15 seconds so you can -flag for further information:**
+**This information is cached for 15 seconds so you can -flag for further information.** Repeating a check on the same domain after the cache is emptied repeats the preliminary checks on the domain.
 
 ```check domain.tld -mail```
 
@@ -89,24 +89,24 @@ This is a different Python script from the one used within check_host.sh (-host 
 
 ```check -help```
 
-Shows the help section! :)
+Shows the help section! :smile:
+
+#### Flags
 
 <details>
-  <summary>More about -flags</summary>
-  
-  All -flags support single or double dash, and have aliases.
-  
-  +all, -all, -a
-  
-  -mail, -email, -m, -e
-  
-  -host, -h
-  
-  -ssl, -s
-  
-  -cert, -c
-  
-  -whois, w
+  <summary><b>All -flags support single or double dash, and have aliases.</b></summary>
+  <br>
+  <code>+all, -all, -a</code>
+  <br>
+  <code>-mail, -email, -m, -e</code>
+  <br>
+  <code>-host, -h</code>
+  <br>
+  <code>-ssl, -s</code>
+  <br>
+  <code>-cert, -c</code>
+  <br>
+  <code>-whois, -w</code>
   
 </details>
 
