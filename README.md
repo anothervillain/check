@@ -17,10 +17,9 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/zhk3r/check/testing/inst
 alias check='~/check/check.sh'
 </pre>
 
-
 ##### Windows Subsystem for Linux setup help and instructions here:
 
-https://github.com/zhk3r/wsl
+https://github.com/zhk3r/wsl ☠️
 
 ## **Lookup relevant domain information**
 
@@ -43,7 +42,7 @@ will show the name of either the Registry (White Label) or Registrar. For .no do
 based on the nameservers found for the domain (from a pre-defined pattern array) the script will tell you where the domain is managed.
 </details>
 
-**This information is cached for 15 seconds so you can -flag for further information.** Repeating a check on the same domain after the cache is emptied repeats the preliminary checks on the domain.
+**This information is cached for 15 seconds so you can -flag for further information.** Repeating a check on the same domain after the cache is emptied repeats the preliminary checks on the domain. If you are using a -flag immediately, all the preliminary checks will be done first.
 
 ```check domain.tld -mail```
 
@@ -134,10 +133,10 @@ There are a lot of pre-defined patterns and arrays defined on top of a lot of 'h
 
 
 #### Contribution
-My coworkers for input on the logic, filtering and output of the script <3
+My coworkers for their input on the script and help with logic. ❤️
 
 #### License
 This project is licensed under Apache 2.0.
 
 #### Contact
-For questions or contributions, contact me wherever you can find me :)
+For questions or contributions, contact me wherever you can find me 😙
