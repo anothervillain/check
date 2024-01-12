@@ -37,7 +37,7 @@ guess_email_provider() {
 
     for host in "${!email_providers[@]}"; do
         if echo "$mx_records" | grep -Eiq "${email_providers[$host]}"; then
-            echo -e "${GREEN}Probably${RESET}" "${CYAN}$host.${RESET}"
+            echo -e "${GREEN}Betting $1 uses${RESET}" "${CYAN}$host${RESET}"
             found=true
             break
         fi
@@ -104,7 +104,7 @@ check_spf() {
         # Check for known primary SPF records
         for primary_sender in "${!spf_known_hosts[@]}"; do
             if [[ "$part" =~ ${spf_known_hosts[$primary_sender]} ]]; then
-                colored_spf_record+="${CYAN}$part${RESET} "  # CYAN or another color for primary SPF
+                colored_spf_record+="${CYAN}$part${RESET} "  # CYAN for primary SPF
                 match_found=true
                 break
             fi
