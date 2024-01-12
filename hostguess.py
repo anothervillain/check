@@ -64,10 +64,6 @@ def host_guesser(domain):
         elif "proxy-ssl.webflow.com" in www_cname_result:
             print(f"{GREEN}Hosted at Webflow |{RESET} {PINK}www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
         # KNOWN HOSTS: Our brands
-        elif is_ip_in_range(a_result, "104.37.39.0/24"):
-            print(f"{GREEN}Hosted at Digital Garden!{RESET} {PINK}based on IP range{RESET}")
-        elif is_ip_in_range(a_result, "195.47.247.0/24"):
-            print(f"{GREEN}Hosted at One.com!{RESET} {PINK}based on IP range{RESET}")
         elif ".tornado-node.net" in reverse_dns_result or ".tornado.no" in reverse_dns_result:
             print(f"{GREEN}Hosted at SYSE!{RESET} {PINK}Guess based on RDNS lookup.{RESET}")
         elif ".proisp.no" in reverse_dns_result:
