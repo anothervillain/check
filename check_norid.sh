@@ -10,7 +10,7 @@ CYAN="\033[0;36m"
 RESET="\033[0m"
 
 # Function to use registrarwhois (norid)
-function whs() {
+function norid_whois() {
     domain_name="$1"
     if [ -z "$domain_name" ]; then
         echo -e "${YELLOW}Usage: whs domain_name${RESET}"
@@ -79,7 +79,6 @@ found && !/Id Type|Organization Type|Type|Post Address|Postal Code|Postal Area|C
 }
 END {
     if (created != "") {
-        printf "\n"
         printf green created reset "\n";
     }
     if (lastUpdated != "") {
@@ -88,4 +87,4 @@ END {
 }'
 }
 
-whs "$1"
+norid_whois "$1"
