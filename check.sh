@@ -150,7 +150,7 @@ guess_dns() {
             services_str+=" ${GREEN}(Multiple NS. Reduntant maybe)${RESET}"
         fi
 
-        echo -e "${YELLOW}DNS administration:${RESET}" "$services_str."
+        echo -e "${YELLOW}DNS management:${RESET}" "$services_str"
     fi
 }
 
@@ -182,7 +182,7 @@ record_last_run() {
 # Function to check if registrar info should be pulled again
 can_skip_checks() {
     local domain=$1
-    local time_frame=25
+    local time_frame=15
 
     if [[ -f "$tmp_file" ]]; then
         read -r last_domain last_time < "$tmp_file"
