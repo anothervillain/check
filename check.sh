@@ -87,34 +87,37 @@ check_registrar() {
 
 # Disable case sensitivity
 shopt -s nocasematch
+# Associative array to map DNS names to regular expressions
 declare -A determine_dns
 # Known hosts: Global
-determine_dns["Cloudflare"]="cloudflare\.(net|com|org)"
-determine_dns["Amazon AWS"]="awsdns-|amzndns\.(co\.uk|com|net|org)"
-determine_dns["Google Cloud DNS"]="googledomains\.com|google\.com"
-determine_dns["Microsoft Azure"]="azure-dns\.com"
-determine_dns["GoDaddy"]="domaincontrol\.com|godaddy\.com$"
-determine_dns["Netlify"]="nsone\.net"
-determine_dns["NameSRS"]="dnsnode\.net"
-determine_dns["Linpro"]="linpro\.net"
+determine_dns["Cloudflare"]="cloudflare\\.(net|com|org)"
+determine_dns["Amazon AWS"]="awsdns-|amzndns\\.(co\\.uk|com|net|org)"
+determine_dns["Google Cloud DNS"]="googledomains\\.com|google\\.com"
+determine_dns["Microsoft Azure"]="azure-dns\\.com"
+determine_dns["GoDaddy"]="domaincontrol\\.com|godaddy\\.com"
+determine_dns["Netlify"]="nsone\\.net"
+determine_dns["NameSRS"]="dnsnode\\.net"
+determine_dns["Linpro"]="linpro\\.net"
+determine_dns["MarkMonitor Inc"]="\.markmonitor\\.(zone|com)"
 # Known hosts: Our brands
-determine_dns["SYSE"]="syse\.no"
+determine_dns["SYSE"]="syse\\.no"
 determine_dns["Legacy ProISP"]="ns1.proisp.no|ns2.proisp.no"
 determine_dns["ProISP"]="ns01.proisp.no|ns02.proisp.no"
-determine_dns["Digital Garden"]="uniweb\.no|fastname\.no|\.no\.brand\.one\.com|ns02\.no\.brand\.one\.com"
-determine_dns["One.com"]="one-(net|com|org)|one-dns\.(net|com|org)"
-# Known hosts:Local providers
+determine_dns["Digital Garden"]="uniweb\\.no|fastname\\.no|\\.no\\.brand\\.one\\.com|ns02\\.no\\.brand\\.one\\.com"
+determine_dns["One.com"]="one-(net|com|org)|one-dns\\.(net|com|org)"
+# Known hosts: Local providers
 determine_dns["Domeneshop"]="hyp.net"
-determine_dns["Netclient Services"]="netclient\.(no|net|com|org)"
-#Enable case sensitivity
-shopt -u nocasematch
+determine_dns["Netclient Services"]="netclient\\.(no|net|com|org)"
+
+# Enable case sensitivity
+shopt -s nocasematch
 
 # Function to guess DNS administration based on NS conversion to company-name
 guess_dns() {
     local domain=$1
     local ns_results=($(dig ns "$domain" +short))
     if [ -z "$ns_results" ]; then
-        # Don't print anything if no nameservers are found
+        # Exit function if no nameservers are found
         return 1
     fi
 
@@ -123,19 +126,19 @@ guess_dns() {
         for service in "${!determine_dns[@]}"; do
             local pattern="${determine_dns[$service]}"
             if [[ "$ns" =~ $pattern ]]; then
-                # Add to matched services if not already included
+                # Add service to matched_services array if not already included
                 if [[ ! " ${matched_services[*]} " =~ " $service " ]]; then
                     matched_services+=("$service")
                 fi
-                break # Break out of inner loop
+                break # Exit the inner loop
             fi
         done
     done
 
     if [ ${#matched_services[@]} -gt 0 ]; then
-        # Construct the service string with different colors
+        # Construct a string of matched services with colored output
         local services_str=""
-        local color=$BLUE  # Start with blue for the first service
+        local color=$BLUE  # Start with blue color for the first service
         for i in "${matched_services[@]}"; do
             services_str+="${color}$i${RESET}"
             color=$CYAN  # Change color to cyan for subsequent services
@@ -147,7 +150,7 @@ guess_dns() {
 
         # Append "Redundancy?" in green if more than one service is matched
         if [ ${#matched_services[@]} -gt 1 ]; then
-            services_str+=" ${GREEN}(Multiple NS. Reduntant maybe)${RESET}"
+            services_str+=" ${GREEN}(Multiple NS. Redundant maybe)${RESET}"
         fi
 
         echo -e "${YELLOW}DNS management:${RESET}" "$services_str"
