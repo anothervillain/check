@@ -1,3 +1,4 @@
+
 import subprocess
 import re
 import ipaddress
@@ -9,39 +10,39 @@ colorama.init(autoreset=True)
 
 # Define ANSI color codes using colorama
 RED = colorama.Fore.RED
-BLUE = colorama.Fore.BLUE
 GREEN = colorama.Fore.GREEN
 YELLOW = colorama.Fore.YELLOW
 MAGENTA = colorama.Fore.MAGENTA
 PINK = colorama.Fore.LIGHTRED_EX
-CYAN = colorama.Fore.CYAN
 RESET = colorama.Style.RESET_ALL
 
 def is_ip_in_range(ip, ip_range):
-    # Check if an IP address is within a given subnet
+    """Check if an IP address is within a given subnet."""
     return ipaddress.ip_address(ip) in ipaddress.ip_network(ip_range)
 
 def perform_whois_lookup(ip_address):
+    """Perform a WHOIS lookup and return organization name."""
     try:
         whois_output = subprocess.check_output(["whois", ip_address], text=True)
-        # Broaden the search to include various formats
         org_name_search = re.search(
             r'(org-name|org-name:|OrgName|Organization|Registrant Organization):\s*(.+)',
             whois_output, re.IGNORECASE)
-        # Broaden the search
-        if org_name_search and not "REDACTED FOR PRIVACY" in org_name_search.group(2):
+        if org_name_search and "REDACTED FOR PRIVACY" not in org_name_search.group(2):
             return org_name_search.group(2).strip()
-        else:
-            # Extracting other possible relevant information
-            netname_search = re.search(
-                r'net-name:|netname:\s*(.+)', whois_output, re.IGNORECASE)
-            if netname_search:
-                return netname_search.group(1).strip()
     except Exception as e:
         print(f"{RED}Error in WHOIS lookup: {e}{RESET}")
     return None
 
+def run_subprocess(command):
+    """Run a subprocess command and return its output."""
+    try:
+        return subprocess.check_output(command, text=True).strip()
+    except subprocess.CalledProcessError as e:
+        print(f"{RED}Error running command {command}: {e}{RESET}")
+        return None
+
 def host_guesser(domain):
+    """Guess the host of a given domain."""
     print(f"{YELLOW}HOST GUESSER{RESET}")
     try:
         # Checking for known hosts through CNAME
@@ -50,6 +51,11 @@ def host_guesser(domain):
         a_result = subprocess.check_output(["dig", "a", domain, "+short"], text=True).strip().split('\n')[0]
         # Perform reverse DNS lookup
         reverse_dns_result = subprocess.check_output(["dig", "-x", a_result, "+short"], text=True).strip()
+        # For Digital Garden, we need to check the SOA record, not using +short
+        reverse_dns_result = run_subprocess(["dig", "-x", a_result])
+        digital_garden_signature = "ns.syse.no. hostmaster.ns.syse.no."
+        is_digital_garden = digital_garden_signature in reverse_dns_result
+        # If the result is SSL redirect proxy
         if a_result == "104.37.39.71":
             print(f"{GREEN}{a_result}{RESET} (SSL Redirect Proxy or default A record)")
         # KNOWN HOSTS: External website builders
@@ -64,6 +70,8 @@ def host_guesser(domain):
         elif "proxy-ssl.webflow.com" in www_cname_result:
             print(f"{GREEN}Hosted at Webflow |{RESET} {PINK}www.{domain}{RESET} IN CNAME {MAGENTA}{www_cname_result}{RESET}")
         # KNOWN HOSTS: Our brands
+        elif is_digital_garden:
+            print(f"{GREEN}Hosted at Digital Garden!{RESET} {PINK}Detected based on SOA record.{RESET}")
         elif ".tornado-node.net" in reverse_dns_result or ".tornado.no" in reverse_dns_result:
             print(f"{GREEN}Hosted at SYSE!{RESET} {PINK}Guess based on RDNS lookup.{RESET}")
         elif ".proisp.no" in reverse_dns_result:
@@ -73,6 +81,8 @@ def host_guesser(domain):
             # KNOW HOSTS: Known brands outisde our ecosystem
         elif "domeneshop.no" in reverse_dns_result or "domainname.shop" in reverse_dns_result:
             print(f"{GREEN}Hosted at Domeneshop!{RESET} {PINK}Guess based on RDNS lookup.{RESET}")
+        elif ".1e100.net" in reverse_dns_result:
+            print(f"{GREEN}Hosted at Google Cloud!{RESET} {PINK}Guess based on RDNS lookup.{RESET}")
         else:
             # Perform WHOIS lookup if no known host is found
             org_name = perform_whois_lookup(a_result)
